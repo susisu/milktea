@@ -1,0 +1,25 @@
+{
+  "name": "milktea",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/susisu/milktea.git"
+  },
+  "author": "Susisu <susisu2413@yahoo.co.jp> (https://github.com/susisu)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/susisu/milktea/issues"
+  },
+  "homepage": "https://github.com/susisu/milktea",
+  "dependencies": {
+    "loquat": "^1.2.1"
+  }
+}
