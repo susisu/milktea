@@ -21,5 +21,9 @@
   "homepage": "https://github.com/susisu/milktea",
   "dependencies": {
     "loquat": "^1.2.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-webpack": "^1.4.0"
   }
 }
