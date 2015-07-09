@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/susisu/milktea",
   "dependencies": {
+    "commander": "^2.8.1",
     "loquat": "^1.2.1"
   },
   "devDependencies": {

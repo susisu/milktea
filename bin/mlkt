@@ -1,0 +1,88 @@
+#!/usr/bin/env node
+/*
+ * milktea : mlkt
+ * copyright (c) 2015 Susisu
+ */
+
+"use strict";
+
+var fs   = require("fs"),
+    util = require("util");
+
+var mlkt = require("../lib/milktea.js");
+var packageInfo = require("../package.json");
+
+function putLine(str) {
+    process.stdout.write(str + "\n");
+}
+
+function trace(value) {
+    return putLine(
+        util.inspect(value, { "depth": null, "colors": true })
+    );
+}
+
+var env =
+    Object.create(
+        Object.create(mlkt.prelude, {
+            "print": {
+                "value": new mlkt.core.Value(
+                    mlkt.core.DataType.FUNCTION,
+                    function (str) {
+                        mlkt.lib.utils.assertType(str, mlkt.core.DataType.STRING);
+                        putLine(str.data);
+                        return mlkt.core.__unit__;
+                    }
+                )
+            },
+            "trace": {
+                "value": new mlkt.core.Value(
+                    mlkt.core.DataType.FUNCTION,
+                    function (value) {
+                        trace(value);
+                        return mlkt.core.__unit__;
+                    }
+                )
+            }
+        })
+    );
+
+process.title = "milktea";
+
+var program = require("commander");
+
+program.version(packageInfo.version, "-v, --version");
+
+program
+    .arguments("<file>")
+    .action(function (filename) {
+        fs.readFile(
+            filename, { "encoding": "utf8" },
+            function (err, src) {
+                if (err) {
+                    putLine(err.toString());
+                    process.exit(1);
+                    return;
+                }
+                var res;
+                try {
+                    res = mlkt.parser.parseEx(filename, src);
+                }
+                catch (parseErr) {
+                    putLine(parseErr.toString());
+                    process.exit(1);
+                    return;
+                }
+                var program = res[0];
+                program.forEach(function (stmt) {
+                    stmt.run(env);
+                });
+            }
+        );
+    });
+
+program.parse(process.argv);
+
+if (program.args.length === 0) {
+    program.help();
+}
