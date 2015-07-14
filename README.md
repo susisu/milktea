@@ -9,6 +9,8 @@ The *milktea* is a functional object-oriented script language written in JavaScr
 * Proper tail calls
 
 ## How to use
+**io.js (>= 2.0) is strongly recommended**; there is an issue on the current version of Node.js due to old V8's bug.
+
 Install with `npm`:
 ``` shell
 $ npm install git://github.com/susisu/milktea.git
