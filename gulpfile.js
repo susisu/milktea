@@ -2,7 +2,7 @@ var gulp    = require("gulp"),
     webpack = require("gulp-webpack");
 
 var packageInfo = require("./package.json");
-var banner      = "milktea\n\
+var banner      = "milktea " + packageInfo.version + "\n\
 copyright (c) 2015 Susisu | MIT License\n\
 https://github.com/susisu/milktea";
 
@@ -13,7 +13,7 @@ gulp.task("webpack", function () {
                 "libraryTarget": "var",
                 "library"      : "milktea",
                 "sourcePrefix" : "    ",
-                "filename"     : "milktea." + packageInfo.version + ".js"
+                "filename"     : "milktea.js"
             },
             "externals": {
                 "loquat": true
@@ -25,7 +25,7 @@ gulp.task("webpack", function () {
                 )
             ]
         }))
-        .pipe(gulp.dest("./build"));
+        .pipe(gulp.dest("./dist"));
 });
 
 gulp.task("webpack-min", function () {
@@ -35,7 +35,7 @@ gulp.task("webpack-min", function () {
                 "libraryTarget": "var",
                 "library"      : "milktea",
                 "sourcePrefix" : "    ",
-                "filename"     : "milktea." + packageInfo.version + ".min.js",
+                "filename"     : "milktea.min.js",
             },
             "externals": {
                 "loquat": true
@@ -48,7 +48,7 @@ gulp.task("webpack-min", function () {
                 )
             ]
         }))
-        .pipe(gulp.dest("./build"));
+        .pipe(gulp.dest("./dist"));
 });
 
 gulp.task("build", ["webpack", "webpack-min"]);

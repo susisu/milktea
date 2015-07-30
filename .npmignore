@@ -1,5 +1,3 @@
 .gitignore
 /test
-/build
 /dev
-gulpfile.js
