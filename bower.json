@@ -16,5 +16,8 @@
     "tests",
     "dev",
     "doc"
-  ]
+  ],
+  "dependencies": {
+    "loquat": "susisu/Loquat#~1.2.2"
+  }
 }
