@@ -1,4 +1,5 @@
 .gitignore
+/bower_components
 /test
 /dev
 /doc

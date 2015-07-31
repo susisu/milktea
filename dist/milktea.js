@@ -1,5 +1,5 @@
 /*!
- * milktea 0.1.0
+ * milktea 0.1.1
  * copyright (c) 2015 Susisu | MIT License
  * https://github.com/susisu/milktea
  */
@@ -2081,8 +2081,8 @@ var milktea =
 
     var lq = __webpack_require__(6);
 
-    var lexer  = __webpack_require__(20);
-    var parser = __webpack_require__(21);
+    var lexer  = __webpack_require__(7);
+    var parser = __webpack_require__(8);
 
     /**
      * @static
@@ -2280,23 +2280,23 @@ var milktea =
              * @see module:lib/regexp
              */
             "modules": {
-                "general"  : __webpack_require__(7),
-                "object"   : __webpack_require__(8),
-                "unit"     : __webpack_require__(9),
-                "number"   : __webpack_require__(10),
-                "string"   : __webpack_require__(11),
-                "bool"     : __webpack_require__(12),
-                "function" : __webpack_require__(13),
-                "reference": __webpack_require__(14),
-                "array"    : __webpack_require__(15),
-                "accessor" : __webpack_require__(16),
-                "date"     : __webpack_require__(17),
-                "regexp"   : __webpack_require__(18),
+                "general"  : __webpack_require__(9),
+                "object"   : __webpack_require__(10),
+                "unit"     : __webpack_require__(11),
+                "number"   : __webpack_require__(12),
+                "string"   : __webpack_require__(13),
+                "bool"     : __webpack_require__(14),
+                "function" : __webpack_require__(15),
+                "reference": __webpack_require__(16),
+                "array"    : __webpack_require__(17),
+                "accessor" : __webpack_require__(18),
+                "date"     : __webpack_require__(19),
+                "regexp"   : __webpack_require__(20),
             },
             /**
              * @see module:lib/utils
              */
-            "utils": __webpack_require__(19)
+            "utils": __webpack_require__(21)
         });
     }
 
@@ -2322,18 +2322,18 @@ var milktea =
         module.exports = Object.freeze(prelude);
     }
 
-    var module_general   = __webpack_require__(7),
-        module_object    = __webpack_require__(8),
-        module_unit      = __webpack_require__(9),
-        module_number    = __webpack_require__(10),
-        module_string    = __webpack_require__(11),
-        module_bool      = __webpack_require__(12),
-        module_function  = __webpack_require__(13),
-        module_reference = __webpack_require__(14),
-        module_array     = __webpack_require__(15),
-        module_accessor  = __webpack_require__(16),
-        module_date      = __webpack_require__(17),
-        module_regexp    = __webpack_require__(18),
+    var module_general   = __webpack_require__(9),
+        module_object    = __webpack_require__(10),
+        module_unit      = __webpack_require__(11),
+        module_number    = __webpack_require__(12),
+        module_string    = __webpack_require__(13),
+        module_bool      = __webpack_require__(14),
+        module_function  = __webpack_require__(15),
+        module_reference = __webpack_require__(16),
+        module_array     = __webpack_require__(17),
+        module_accessor  = __webpack_require__(18),
+        module_date      = __webpack_require__(19),
+        module_regexp    = __webpack_require__(20),
         module_maybe     = __webpack_require__(22),
         module_json      = __webpack_require__(23);
 
@@ -2570,6 +2570,1061 @@ var milktea =
 /***/ function(module, exports, __webpack_require__) {
 
     /*
+     * milktea : parser/lexer.js
+     * copyright (c) 2015 Susisu
+     */
+
+    /**
+     * @module parser/lexer
+     */
+
+    "use strict";
+
+    function end_module() {
+        module.exports = Object.freeze({
+            "lexer"  : lexer,
+            "lexerEx": lexerEx
+        });
+    }
+
+    var lq = __webpack_require__(6);
+
+    var tokens = __webpack_require__(24);
+
+    var langDef = new lq.LanguageDef(
+        "{-",
+        "-}",
+        "--",
+        true,
+        lq.letter,
+        lq.alphaNum.or(lq.oneOf("_'")),
+        lq.oneOf(":!#$%&*+./<=>?@\\^|-~"),
+        lq.oneOf(":!#$%&*+./<=>?@\\^|-~"),
+        [
+            "NaN", "Infinity",
+            "true", "false",
+            "if", "then", "else",
+            "and", "or",
+            "let", "in",
+            "begin", "end",
+            "while", "do",
+            "infix", "infixl", "infixr"
+        ],
+        ["=", "\\", "->", ".", ":", "!", "?"],
+        true
+    );
+    var tokenParser = lq.makeTokenParser(langDef);
+
+    // number literal
+    var numberLiteralToken =
+        lq.getPosition.bind(function (pos) {
+            return tokenParser.naturalOrFloat.bind(function (nf) {
+                if (nf.length === 1) {
+                    // natural
+                    return lq.pure(new tokens.NaturalLiteral(pos, nf[0]));
+                }
+                else {
+                    // float
+                    return lq.pure(new tokens.FloatLiteral(pos, nf[1]));
+                }
+            });
+        })
+        .label("number");
+    var specialNumberLiteral =
+        tokenParser.reserved("NaN").then(lq.pure(NaN))
+        .or(tokenParser.reserved("Infinity").then(lq.pure(Infinity)));
+    var specialNumberLiteralToken =
+        lq.getPosition.bind(function (pos) {
+            return specialNumberLiteral.bind(function (num) {
+                return lq.pure(new tokens.FloatLiteral(pos, num));
+            });
+        })
+        .label("number");
+
+    // string literal
+    var stringLiteral = tokenParser.stringLiteral;
+    var stringLiteralToken =
+        lq.getPosition.bind(function (pos) {
+            return stringLiteral.bind(function (str) {
+                return lq.pure(new tokens.StringLiteral(pos, str));
+            });
+        })
+        .label("string");
+
+    // bool literal
+    var boolLiteral =
+        tokenParser.reserved("true").then(lq.pure(true))
+        .or(tokenParser.reserved("false").then(lq.pure(false)));
+    var boolLiteralToken =
+        lq.getPosition.bind(function (pos) {
+            return boolLiteral.bind(function (tf) {
+                return lq.pure(new tokens.BoolLiteral(pos, tf));
+            });
+        })
+        .label("bool");
+
+    // identifier
+    var identifier = tokenParser.identifier;
+    var identifierToken =
+        lq.getPosition.bind(function (pos) {
+            return identifier.bind(function (name) {
+                return lq.pure(new tokens.Identifier(pos, name));
+            });
+        })
+        .label("identifier");
+
+    // operator
+    var operator = tokenParser.operator;
+    var operatorToken =
+        lq.getPosition.bind(function (pos) {
+            return operator.bind(function (name) {
+                return lq.pure(new tokens.Operator(pos, name));
+            });
+        })
+        .label("operator");
+
+    var infixIdentifier =
+        tokenParser.symbol("`")
+        .right(identifier)
+        .left(tokenParser.symbol("`"));
+    var infixIdentifierToken =
+        lq.getPosition.bind(function (pos) {
+            return infixIdentifier.bind(function (name) {
+                return lq.pure(new tokens.InfixIdentifier(pos, name));
+            });
+        })
+        .label("operator");
+
+    var noBindingPattern = tokenParser.reserved("_");
+    var noBindingPatternToken =
+        lq.getPosition.bind(function (pos) {
+            return noBindingPattern.then(
+                lq.pure(new tokens.NoBindingPattern(pos))
+            );
+        })
+        .label("_");
+
+    // reserved word
+    var reservedWord =
+        lq.choice(
+            [
+                "if", "then", "else",
+                "and", "or",
+                "let", "in",
+                "begin", "end",
+                "while", "do",
+                "infix", "infixl", "infixr"
+            ].map(function (word) {
+                return tokenParser.reserved(word).then(lq.pure(word));
+            })
+        );
+    var reservedWordToken =
+        lq.getPosition.bind(function (pos) {
+            return reservedWord.bind(function (name) {
+                return lq.pure(new tokens.ReservedWord(pos, name));
+            });
+        })
+        .label("reserved word");
+
+    // reserved operator
+    var reservedOperator =
+        lq.choice(
+            [
+                "=", "\\", "->", ".", ":", "!", "?"
+            ].map(function (op) {
+                return tokenParser.reservedOp(op).then(lq.pure(op))
+            })
+        );
+    var reservedOperatorToken =
+        lq.getPosition.bind(function (pos) {
+            return reservedOperator.bind(function (name) {
+                return lq.pure(new tokens.ReservedOperator(pos, name));
+            });
+        })
+        .label("reserved operator");
+
+    // symbols
+    var openParen    = tokenParser.symbol("(");
+    var closeParen   = tokenParser.symbol(")");
+    var openBrace    = tokenParser.symbol("{");
+    var closeBrace   = tokenParser.symbol("}");
+    var openBracket  = tokenParser.symbol("[");
+    var closeBracket = tokenParser.symbol("]");
+    var comma        = tokenParser.comma;
+    var semicolon    = tokenParser.semi;
+    var symbol =
+        lq.choice([
+            openParen, closeParen,
+            openBrace, closeBrace,
+            openBracket, closeBracket,
+            comma, semicolon
+        ]);
+    var symbolToken =
+        lq.getPosition.bind(function (pos) {
+            return symbol.bind(function (name) {
+                return lq.pure(new tokens.Symbol(pos, name));
+            });
+        }).label("symbol");
+
+    var token =
+        lq.choice([
+            numberLiteralToken,
+            specialNumberLiteralToken,
+            stringLiteralToken,
+            boolLiteralToken,
+            identifierToken,
+            operatorToken,
+            infixIdentifierToken,
+            noBindingPatternToken,
+            reservedWordToken,
+            reservedOperatorToken,
+            symbolToken
+        ])
+        .label("token");
+
+    /**
+     * @static
+     * @type {loquat.Parser<string, *, Array.<module:parser/tokens.Token>>}
+     * @desc The tokenizer that consumers a stream of string.
+     */
+    var lexer =
+        tokenParser.whiteSpace
+        .then(token.many())
+        .left(lq.eof);
+
+    var shebang =
+        lq.optional(
+            lq.string("#!")
+            .then(lq.noneOf("\r\n").skipMany())
+            .then(lq.oneOf("\r\n"))
+        );
+
+    /**
+     * @static
+     * @type {loquat.Parser<string, *, Array.<module:parser/tokens.Token>>}
+     * @desc The tokenizer that consumers a stream of string.
+     *  A shebang at the head of the stream will be ignored.
+     */
+    var lexerEx = shebang.then(lexer);
+
+    end_module();
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+    /*
+     * milktea : parser/parser.js
+     * copyright (c) 2015 Susisu
+     */
+
+    /**
+     * @module parser/parser
+     */
+
+    "use strict";
+
+    function end_module() {
+        module.exports = Object.freeze({
+            "ParserState" : ParserState,
+            "OperatorInfo": OperatorInfo,
+            "parser"      : parser
+        });
+    }
+
+    var lq = __webpack_require__(6);
+
+    var core   = __webpack_require__(1);
+    var tokens = __webpack_require__(24);
+
+    /**
+     * @static
+     * @class ParserState
+     * @param {object.<string, module:parser/parser.OperatorInfo>} operatorsInfo
+     */
+    function ParserState(operatorsInfo) {
+        this.operatorsInfo = operatorsInfo;
+    }
+
+    ParserState.prototype = Object.create(Object.prototype, /** @lends module:parser/parser.ParserState.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": ParserState
+        },
+        /**
+         * @member
+         * @function
+         * @return {module:parser/parser.ParserState}
+         * @desc Creates a new state that extends the original state.
+         */
+        "extend": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                var newOperatorsInfo = Object.create(this.operatorsInfo);
+                return new ParserState(newOperatorsInfo);
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class OperatorInfo
+     * @param {string} assoc
+     * @param {number} precedence
+     */
+    function OperatorInfo(assoc, precedence) {
+        this.assoc      = assoc;
+        this.precedence = precedence;
+    }
+
+    // token parsers
+    function token(calcValue) {
+        return lq.token(
+            function (token) { return token.toString(); },
+            calcValue,
+            function (token) { return token.pos; }
+        );
+    }
+
+    function tokenOf(tokenClass) {
+        return token(function (token) {
+            if (token instanceof tokenClass) {
+                return [token];
+            }
+            else {
+                return [];
+            }
+        });
+    }
+
+    // symbols
+    function tok_symbol(name) {
+        return token(function (token) {
+            if (token instanceof tokens.Symbol && token.name === name) {
+                return [token];
+            }
+            else {
+                return [];
+            }
+        })
+        .label(name);
+    }
+    var tok_openParen    = tok_symbol("(");
+    var tok_closeParen   = tok_symbol(")");
+    var tok_openBrace    = tok_symbol("{");
+    var tok_closeBrace   = tok_symbol("}");
+    var tok_openBracket  = tok_symbol("[");
+    var tok_closeBracket = tok_symbol("]");
+    var tok_comma        = tok_symbol(",");
+    var tok_semicolon    = tok_symbol(";");
+
+    // literals
+    var tok_natural = tokenOf(tokens.NaturalLiteral).label("natural");
+    var tok_float   = tokenOf(tokens.FloatLiteral).label("float");
+    var tok_number  = tok_natural.or(tok_float).label("number");
+    var tok_string  = tokenOf(tokens.StringLiteral).label("string");
+    var tok_bool    = tokenOf(tokens.BoolLiteral).label("bool");
+
+    // identifier
+    var tok_identifier = tokenOf(tokens.Identifier).label("identifier");
+
+    // operators
+    var tok_anyOperator     = tokenOf(tokens.Operator).label("operator");
+    var tok_infixIdentifier = tokenOf(tokens.InfixIdentifier).label("operator");
+    function tok_operator(name) {
+        return token(function (token) {
+            if (token instanceof tokens.Operator && token.name === name) {
+                return [token];
+            }
+            else {
+                return [];
+            }
+        })
+        .label(name);
+    }
+    function tok_operatorOf(assoc, precedence) {
+        return lq.getUserState.bind(function (state) {
+            return token(function (token) {
+                if (token instanceof tokens.Operator || token instanceof tokens.InfixIdentifier) {
+                    var info = state.operatorsInfo[token.name];
+                    var assocInfo =
+                        info === undefined
+                        ? lq.OperatorAssoc.ASSOC_LEFT
+                        : info.assoc; 
+                    var precedenceInfo =
+                        info === undefined
+                        ? 9
+                        : info.precedence;
+                    if (assocInfo === assoc && precedenceInfo === precedence) {
+                        return [token];
+                    }
+                    else {
+                        return [];
+                    }
+                }
+                else {
+                    return [];
+                }
+            });
+        });
+    }
+
+    // variable
+    var tok_variable =
+        tok_identifier
+        .or(lq.try(
+            tok_openParen.bind(function (open) {
+                return tok_anyOperator.bind(function (op) {
+                    return tok_closeParen
+                        .then(lq.pure(new tokens.Identifier(op.pos, op.name)));
+                });
+            })
+        ))
+        .label("variable");
+
+    // argument
+    var tok_noBindingPattern = tokenOf(tokens.NoBindingPattern).label("_");
+    var tok_argument = tok_variable.or(tok_noBindingPattern);
+
+    // reserved words
+    function tok_reservedWord(name) {
+        return token(function (token) {
+            if (token instanceof tokens.ReservedWord && token.name === name) {
+                return [token];
+            }
+            else {
+                return [];
+            }
+        })
+        .label("'" + name + "'");
+    }
+    var tok_if     = tok_reservedWord("if");
+    var tok_then   = tok_reservedWord("then");
+    var tok_else   = tok_reservedWord("else");
+    var tok_and    = tok_reservedWord("and");
+    var tok_or     = tok_reservedWord("or");
+    var tok_let    = tok_reservedWord("let");
+    var tok_in     = tok_reservedWord("in");
+    var tok_begin  = tok_reservedWord("begin");
+    var tok_end    = tok_reservedWord("end");
+    var tok_while  = tok_reservedWord("while");
+    var tok_do     = tok_reservedWord("do");
+    var tok_infix  = tok_reservedWord("infix");
+    var tok_infixl = tok_reservedWord("infixl");
+    var tok_infixr = tok_reservedWord("infixr");
+
+    // reserved operators
+    function tok_reservedOperator(name) {
+        return token(function (token) {
+            if (token instanceof tokens.ReservedOperator && token.name === name) {
+                return [token];
+            }
+            else {
+                return [];
+            }
+        })
+        .label(name);
+    }
+    var tok_equal     = tok_reservedOperator("=");
+    var tok_backslash = tok_reservedOperator("\\");
+    var tok_arrow     = tok_reservedOperator("->");
+    var tok_dot       = tok_reservedOperator(".");
+    var tok_colon     = tok_reservedOperator(":");
+    var tok_bang      = tok_reservedOperator("!");
+    var tok_question  = tok_reservedOperator("?");
+
+    // utility functions
+    function makeClosure(pos, args, body) {
+        if (args.length === 0) {
+            return body;
+        }
+        else {
+            var argNames =
+                args.map(function (arg) {
+                    return arg instanceof tokens.NoBindingPattern ? undefined : arg.name;
+                });
+            return new core.Closure(pos, argNames, body);
+        }
+    }
+
+    var prefixNegation =
+        new lq.Operator(
+            lq.OperatorType.PREFIX,
+            tok_operator("-").bind(function (op) {
+                return lq.pure(function (x) {
+                    return new core.Negation(op.pos, x)
+                });
+            })
+        );
+
+    function infixOperatorOf(assoc, precedence) {
+        return new lq.Operator(
+            lq.OperatorType.INFIX,
+            tok_operatorOf(assoc, precedence).bind(function (op) {
+                return lq.pure(function (x, y) {
+                    return new core.Application(
+                        op.pos,
+                        new core.Application(
+                            op.pos,
+                            new core.Variable(op.pos, op.name),
+                            x
+                        ),
+                        y
+                    )
+                });
+            }),
+            assoc
+        );
+    }
+
+    // expression
+    var expression = new lq.LazyParser(function () {
+        return lq.buildExpressionParser(
+            [
+                [
+                    prefixNegation
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  9),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  9),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 9)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  8),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  8),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 8)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  7),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  7),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 7)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  6),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  6),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 6)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  5),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  5),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 5)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  4),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  4),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 4)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  3),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  3),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 3)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  2),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  2),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 2)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  1),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  1),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 1)
+                ],
+                [
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  0),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  0),
+                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 0)
+                ],
+                [
+                    new lq.Operator(
+                        lq.OperatorType.INFIX,
+                        tok_and.bind(function (op) {
+                            return lq.pure(function (x, y) {
+                                return new core.CondAnd(op.pos, x, y);
+                            })
+                        }),
+                        lq.OperatorAssoc.ASSOC_RIGHT
+                    )
+                ],
+                [
+                    new lq.Operator(
+                        lq.OperatorType.INFIX,
+                        tok_or.bind(function (op) {
+                            return lq.pure(function (x, y) {
+                                return new core.CondOr(op.pos, x, y);
+                            })
+                        }),
+                        lq.OperatorAssoc.ASSOC_RIGHT
+                    )
+                ]
+            ],
+            operandExpr
+        )
+        .label("expression");
+    });
+
+    // literals
+    var numberLiteral =
+        tok_number.bind(function (token) {
+            return lq.pure(
+                new core.Literal(
+                    token.pos,
+                    new core.Value(core.DataType.NUMBER, token.value)
+                )
+            )
+        })
+        .label("number");
+    var stringLiteral =
+        tok_string.bind(function (token) {
+            return lq.pure(
+                new core.Literal(
+                    token.pos,
+                    new core.Value(core.DataType.STRING, token.value)
+                )
+            )
+        })
+        .label("string");
+    var boolLiteral =
+        tok_bool.bind(function (token) {
+            return lq.pure(
+                new core.Literal(token.pos, token.value ? core.__true__ : core.__false__)
+            )
+        })
+        .label("bool");
+    var unitLiteral =
+        lq.try(
+            tok_openParen.bind(function (open) {
+                return tok_closeParen.then(
+                    lq.pure(
+                        new core.Literal(open.pos, core.__unit__)
+                    )
+                );
+            })
+        )
+        .label("()");
+    var arrayLiteral =
+        tok_openBracket.bind(function (open) {
+            return expression.sepBy(tok_comma).bind(function (elems) {
+                return tok_closeBracket
+                    .then(lq.pure(new core.ArrayLiteral(open.pos, elems)));
+            });
+        })
+        .label("array");
+    var objectLiteral = (function () {
+        var prop =
+            tok_identifier.bind(function (name) {
+                return tok_colon.then(expression).bind(function (expr) {
+                    return lq.pure([name.name, expr]);
+                });
+            })
+            .label("property");
+        var propStr =
+            tok_string.bind(function (name) {
+                return tok_colon.then(expression).bind(function (expr) {
+                    return lq.pure([name.value, expr]);
+                });
+            })
+            .label("property");
+        return tok_openBrace.bind(function (open) {
+            return prop.or(propStr).sepBy(tok_comma).bind(function (props) {
+                return tok_closeBrace
+                    .then(lq.pure(new core.ObjectLiteral(open.pos, props)));
+            });
+        })
+        .label("object");
+    })();
+    var literal =
+        numberLiteral
+        .or(stringLiteral)
+        .or(boolLiteral)
+        .or(unitLiteral)
+        .or(arrayLiteral)
+        .or(objectLiteral);
+
+    // variables
+    var variable =
+        tok_variable.bind(function (token) {
+            return lq.pure(
+                new core.Variable(token.pos, token.name)
+            );
+        })
+        .label("variable");
+
+    // object accessor sections
+    var readPropertySec =
+        tok_dot.bind(function (dot) {
+            return tok_identifier.bind(function (id) {
+                return tok_closeParen
+                    .then(lq.pure(
+                        new core.ReadPropertySection(
+                            dot.pos,
+                            new core.Literal(
+                                id.pos,
+                                new core.Value(core.DataType.STRING, id.name)
+                            )
+                        )
+                    ));
+            });
+        });
+    var callMethodSec =
+        tok_colon.bind(function (colon) {
+            return tok_identifier.bind(function (id) {
+                return tok_closeParen
+                    .then(lq.pure(
+                        new core.CallMethodSection(
+                            colon.pos,
+                            new core.Literal(
+                                id.pos,
+                                new core.Value(core.DataType.STRING, id.name)
+                            )
+                        )
+                    ));
+            });
+        });
+    var writePropertySec =
+        tok_bang.bind(function (bang) {
+            return tok_identifier.bind(function (id) {
+                return tok_closeParen
+                    .then(lq.pure(
+                        new core.WritePropertySection(
+                            bang.pos,
+                            new core.Literal(
+                                id.pos,
+                                new core.Value(core.DataType.STRING, id.name)
+                            )
+                        )
+                    ));
+            });
+        });
+    var checkPropertySec =
+        tok_question.bind(function (question) {
+            return tok_identifier.bind(function (id) {
+                return tok_closeParen
+                    .then(lq.pure(
+                        new core.CheckPropertySection(
+                            question.pos,
+                            new core.Literal(
+                                id.pos,
+                                new core.Value(core.DataType.STRING, id.name)
+                            )
+                        )
+                    ));
+            });
+        })
+    var accessorSec =
+        lq.try(
+            tok_openParen.then(
+                readPropertySec
+                    .or(callMethodSec)
+                    .or(writePropertySec)
+                    .or(checkPropertySec)
+            )
+        )
+        .label("accessor");
+
+    // primitive expressions
+    var primExpr =
+        literal
+        .or(variable)
+        .or(accessorSec)
+        .or(expression.between(tok_openParen, tok_closeParen))
+        .label("");
+
+    // object accessors
+    var readPropertyAccessor =
+        tok_dot.bind(function (dot) {
+            return tok_identifier.bind(function (id) {
+                return lq.pure(function (obj) {
+                    return new core.ReadPropertyAccessor(
+                        dot.pos,
+                        obj,
+                        new core.Literal(
+                            id.pos,
+                            new core.Value(core.DataType.STRING, id.name)
+                        )
+                    );
+                });
+            });
+        });
+    var callMethodAccessor =
+        tok_colon.bind(function (colon) {
+            return tok_identifier.bind(function (id) {
+                return lq.pure(function (obj) {
+                    return new core.CallMethodAccessor(
+                        colon.pos,
+                        obj,
+                        new core.Literal(
+                            id.pos,
+                            new core.Value(core.DataType.STRING, id.name)
+                        )
+                    );
+                });
+            });
+        });
+    var writePropertyAccessor =
+        tok_bang.bind(function (bang) {
+            return tok_identifier.bind(function (id) {
+                return lq.pure(function (obj) {
+                    return new core.WritePropertyAccessor(
+                        bang.pos,
+                        obj,
+                        new core.Literal(
+                            id.pos,
+                            new core.Value(core.DataType.STRING, id.name)
+                        )
+                    );
+                });
+            });
+        });
+    var checkPropertyAccessor =
+        tok_question.bind(function (question) {
+            return tok_identifier.bind(function (id) {
+                return lq.pure(function (obj) {
+                    return new core.CheckPropertyAccessor(
+                        question.pos,
+                        obj,
+                        new core.Literal(
+                            id.pos,
+                            new core.Value(core.DataType.STRING, id.name)
+                        )
+                    );
+                });
+            });
+        });
+    var accessor =
+        readPropertyAccessor
+        .or(callMethodAccessor)
+        .or(writePropertyAccessor)
+        .or(checkPropertyAccessor);
+    var objExpr =
+        primExpr.bind(function (expr) {
+            return accessor.many().bind(function (accessors) {
+                return lq.pure(accessors.reduce(
+                    function (obj, acc) {
+                        return acc(obj);
+                    },
+                    expr
+                ));
+            });
+        });
+
+    // function applications
+    var appExpr =
+        objExpr.bind(function (func) {
+            return objExpr.many().bind(function (args) {
+                return lq.pure(
+                    args.reduce(
+                        function (f, arg) {
+                            return new core.Application(arg.pos, f, arg);
+                        },
+                        func
+                    )
+                );
+            });
+        });
+
+    // lambda abstraction
+    var lambdaExpr =
+        tok_backslash.bind(function (lambda) {
+            return tok_argument.many1().bind(function (args) {
+                return tok_arrow
+                    .then(expression)
+                    .bind(function (body) {
+                        return lq.pure(makeClosure(lambda.pos, args, body));
+                    });
+            })
+        })
+        .label("lambda");
+
+    // conditional
+    var condExpr =
+        tok_if.bind(function (cond) {
+            return expression.bind(function (test) {
+                return tok_then
+                    .then(expression)
+                    .bind(function (conseq) {
+                        return tok_else
+                            .then(expression)
+                            .bind(function (alt) {
+                                return lq.pure(new core.Conditional(cond.pos, test, conseq, alt));
+                            });
+                    });
+            })
+        })
+        .label("conditonal");
+
+    // local binding
+    var bindExpr = (function () {
+        var binding =
+            tok_variable.bind(function (id) {
+                return tok_argument.many().bind(function (args) {
+                    return tok_equal.then(expression).bind(function (expr) {
+                        return lq.pure([id.name, makeClosure(id.pos, args, expr)]);
+                    });
+                }); 
+            });
+        return tok_let.bind(function (bind) {
+            return binding.sepEndBy1(tok_semicolon).bind(function (binds) {
+                return tok_in.then(expression).bind(function (expr) {
+                    return lq.pure(new core.Binding(bind.pos, binds, expr));
+                });
+            });
+        })
+        .label("binding");
+    })();
+
+    // procedure
+    var procExpr =
+        tok_begin.bind(function (proc) {
+            return expression.sepEndBy1(tok_semicolon).bind(function (exprs) {
+                return tok_end.then(lq.pure(new core.Procedure(proc.pos, exprs)));
+            });
+        });
+
+    // loop
+    var loopExpr =
+        tok_while.bind(function (loop) {
+            return expression.bind(function (test) {
+                return tok_do.then(expression).bind(function (expr) {
+                    return lq.pure(new core.Loop(loop.pos, test, expr));
+                });
+            });
+        });
+
+    // operand of expression
+    var operandExpr =
+        appExpr
+        .or(lambdaExpr)
+        .or(condExpr)
+        .or(bindExpr)
+        .or(procExpr)
+        .or(loopExpr)
+        .label("operand");
+
+    // declarations
+    // definition
+    var definitionDecl = 
+        lq.try(
+            tok_variable.bind(function (id) {
+                return tok_argument.many().left(tok_equal).bind(function (args) {
+                    return lq.pure([id, args]);
+                });
+            })
+        ).bind(function (ids) {
+            return expression.bind(function (expr) {
+                var id   = ids[0];
+                var args = ids[1];
+                return lq.pure(
+                    new core.Definition(id.pos, id.name, makeClosure(id.pos, args, expr))
+                );
+            })
+        })
+        .label("variable definition");
+
+    // fixity declaration
+    var fixityDecl = (function () {
+        var tok_fixity =
+            tok_infix
+            .or(tok_infixl)
+            .or(tok_infixr)
+            .label("fixity");
+
+        function failWithPos(pos, message) {
+            return new lq.Parser(function (state, csuc, cerr, esuc, eerr) {
+                return eerr(
+                    new lq.ParseError(
+                        pos,
+                        [new lq.ErrorMessage(lq.ErrorMessageType.MESSAGE, message)]
+                    )
+                );
+            });
+        }
+
+        return tok_fixity.bind(function (fixity) {
+            return tok_natural.bind(function (precedence) {
+                if (precedence.value < 0 || 9 < precedence.value) {
+                    return failWithPos(
+                        precedence.pos,
+                        "precedence out of range: " + precedence.value.toString()
+                    );
+                }
+                else {
+                    return tok_anyOperator.or(tok_infixIdentifier).bind(function (op) {
+                        return lq.getUserState.bind(function (state) {
+                            var info = state.operatorsInfo[op.name];
+                            if (info === undefined) {
+                                var assoc;
+                                switch (fixity.name) {
+                                    case "infix" :
+                                        assoc = lq.OperatorAssoc.ASSOC_NONE;
+                                        break;
+                                    case "infixl":
+                                        assoc = lq.OperatorAssoc.ASSOC_LEFT;
+                                        break;
+                                    case "infixr":
+                                        assoc = lq.OperatorAssoc.ASSOC_RIGHT;
+                                        break;
+                                }
+                                var newState = state.extend();
+                                newState.operatorsInfo[op.name] = new OperatorInfo(assoc, precedence.value);
+                                return lq.setUserState(newState)
+                                    .then(lq.pure(new core.Empty(fixity.pos)));
+                            }
+                            else {
+                                return failWithPos(
+                                    op.pos,
+                                    "fixity already declared : " + op.name
+                                );
+                            }
+                        });
+                    });
+                }
+            });
+        })
+        .label("fixity declaration")
+    })();
+
+    var statement =
+        definitionDecl
+        .or(fixityDecl)
+        .or(expression)
+        .left(tok_semicolon.skipMany());
+
+    var head =
+        lq.optional(
+            lq.lookAhead(tokenOf(tokens.Token)).bind(function (token) {
+                return lq.setPosition(token.pos);
+            })
+        );
+
+    /**
+     * @static
+     * @type {loquat.Parser<module:parser/tokens.Token, module:parser/parser.ParserState, Array>}
+     * @desc The parser that consumes a stream of {@link module:parser/tokens.Token}.
+     *  The result type is pair (array) of {@link Array.<module:core.Statement>} and {@link module:parser/parser.ParserState}.
+     */
+    var parser =
+        head
+        .then(tok_semicolon.skipMany().label(""))
+        .then(statement.many()).bind(function (stmts) {
+            return lq.eof.then(lq.getUserState).bind(function (state) {
+                return lq.pure([stmts, state]);
+            });
+        });
+
+    end_module();
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+    /*
      * milktea : lib/general.js
      * copyright (c) 2015 Susisu
      */
@@ -2608,7 +3663,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils       = __webpack_require__(19),
+    var utils       = __webpack_require__(21),
         assertType  = utils.assertType,
         assertTypes = utils.assertTypes;
 
@@ -2893,7 +3948,7 @@ var milktea =
 
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -2943,14 +3998,14 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils          = __webpack_require__(19),
+    var utils          = __webpack_require__(21),
         assertType     = utils.assertType,
         createObject   = utils.createObject,
         readProperty   = utils.readProperty,
         writeProperty  = utils.writeProperty,
         deleteProperty = utils.deleteProperty;
 
-    var module_general = __webpack_require__(7);
+    var module_general = __webpack_require__(9);
 
     /**
      * @static
@@ -3248,7 +4303,7 @@ var milktea =
 
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -3282,14 +4337,14 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_general = __webpack_require__(7),
-        module_object  = __webpack_require__(8);
+    var module_general = __webpack_require__(9),
+        module_object  = __webpack_require__(10);
 
     /**
      * @static
@@ -3358,7 +4413,7 @@ var milktea =
 
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -3419,13 +4474,13 @@ var milktea =
         __true__  = core.__true__,
         __false__ = core.__false__;
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     /**
      * @static
@@ -3988,7 +5043,7 @@ var milktea =
 
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -4044,13 +5099,13 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     /**
      * @static
@@ -4620,7 +5675,7 @@ var milktea =
 
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -4654,13 +5709,13 @@ var milktea =
         __true__  = core.__true__,
         __false__ = core.__false__;
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     /**
      * @static
@@ -4772,7 +5827,7 @@ var milktea =
 
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -4809,13 +5864,13 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     /**
      * @static
@@ -5002,7 +6057,7 @@ var milktea =
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -5039,7 +6094,7 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils             = __webpack_require__(19),
+    var utils             = __webpack_require__(21),
         assertType        = utils.assertType,
         createObject      = utils.createObject,
         readProperty      = utils.readProperty,
@@ -5047,7 +6102,7 @@ var milktea =
         writeProperty     = utils.writeProperty,
         referenceToString = utils.referenceToString;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     /**
      * @static
@@ -5171,7 +6226,7 @@ var milktea =
 
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -5264,7 +6319,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -5272,11 +6327,11 @@ var milktea =
         writeProperty = utils.writeProperty,
         arrayToString = utils.arrayToString;
 
-    var module_general  = __webpack_require__(7),
-        module_object   = __webpack_require__(8),
-        module_number   = __webpack_require__(10),
-        module_bool     = __webpack_require__(12),
-        module_function = __webpack_require__(13);
+    var module_general  = __webpack_require__(9),
+        module_object   = __webpack_require__(10),
+        module_number   = __webpack_require__(12),
+        module_bool     = __webpack_require__(14),
+        module_function = __webpack_require__(15);
 
     /**
      * @static
@@ -6611,7 +7666,7 @@ var milktea =
 
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -6646,21 +7701,21 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         readProperty  = utils.readProperty,
         callMethod    = utils.callMethod,
         writeProperty = utils.writeProperty,
         checkProperty = utils.checkProperty;
 
-    var module_object    = __webpack_require__(8),
-        module_unit      = __webpack_require__(9),
-        module_number    = __webpack_require__(10),
-        module_string    = __webpack_require__(11),
-        module_bool      = __webpack_require__(12),
-        module_function  = __webpack_require__(13),
-        module_reference = __webpack_require__(14),
-        module_array     = __webpack_require__(15);
+    var module_object    = __webpack_require__(10),
+        module_unit      = __webpack_require__(11),
+        module_number    = __webpack_require__(12),
+        module_string    = __webpack_require__(13),
+        module_bool      = __webpack_require__(14),
+        module_function  = __webpack_require__(15),
+        module_reference = __webpack_require__(16),
+        module_array     = __webpack_require__(17);
 
 
     function toObject(value) {
@@ -6783,7 +7838,7 @@ var milktea =
 
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -6814,13 +7869,13 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     var INTERNAL_KEY = "__date__";
 
@@ -7509,7 +8564,7 @@ var milktea =
 
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -7546,7 +8601,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -7554,7 +8609,7 @@ var milktea =
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object = __webpack_require__(8);
+    var module_object = __webpack_require__(10);
 
     var INTERNAL_KEY = "__regexp__";
 
@@ -7870,7 +8925,7 @@ var milktea =
 
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -8184,1061 +9239,6 @@ var milktea =
 
 
 /***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-    /*
-     * milktea : parser/lexer.js
-     * copyright (c) 2015 Susisu
-     */
-
-    /**
-     * @module parser/lexer
-     */
-
-    "use strict";
-
-    function end_module() {
-        module.exports = Object.freeze({
-            "lexer"  : lexer,
-            "lexerEx": lexerEx
-        });
-    }
-
-    var lq = __webpack_require__(6);
-
-    var tokens = __webpack_require__(24);
-
-    var langDef = new lq.LanguageDef(
-        "{-",
-        "-}",
-        "--",
-        true,
-        lq.letter,
-        lq.alphaNum.or(lq.oneOf("_'")),
-        lq.oneOf(":!#$%&*+./<=>?@\\^|-~"),
-        lq.oneOf(":!#$%&*+./<=>?@\\^|-~"),
-        [
-            "NaN", "Infinity",
-            "true", "false",
-            "if", "then", "else",
-            "and", "or",
-            "let", "in",
-            "begin", "end",
-            "while", "do",
-            "infix", "infixl", "infixr"
-        ],
-        ["=", "\\", "->", ".", ":", "!", "?"],
-        true
-    );
-    var tokenParser = lq.makeTokenParser(langDef);
-
-    // number literal
-    var numberLiteralToken =
-        lq.getPosition.bind(function (pos) {
-            return tokenParser.naturalOrFloat.bind(function (nf) {
-                if (nf.length === 1) {
-                    // natural
-                    return lq.pure(new tokens.NaturalLiteral(pos, nf[0]));
-                }
-                else {
-                    // float
-                    return lq.pure(new tokens.FloatLiteral(pos, nf[1]));
-                }
-            });
-        })
-        .label("number");
-    var specialNumberLiteral =
-        tokenParser.reserved("NaN").then(lq.pure(NaN))
-        .or(tokenParser.reserved("Infinity").then(lq.pure(Infinity)));
-    var specialNumberLiteralToken =
-        lq.getPosition.bind(function (pos) {
-            return specialNumberLiteral.bind(function (num) {
-                return lq.pure(new tokens.FloatLiteral(pos, num));
-            });
-        })
-        .label("number");
-
-    // string literal
-    var stringLiteral = tokenParser.stringLiteral;
-    var stringLiteralToken =
-        lq.getPosition.bind(function (pos) {
-            return stringLiteral.bind(function (str) {
-                return lq.pure(new tokens.StringLiteral(pos, str));
-            });
-        })
-        .label("string");
-
-    // bool literal
-    var boolLiteral =
-        tokenParser.reserved("true").then(lq.pure(true))
-        .or(tokenParser.reserved("false").then(lq.pure(false)));
-    var boolLiteralToken =
-        lq.getPosition.bind(function (pos) {
-            return boolLiteral.bind(function (tf) {
-                return lq.pure(new tokens.BoolLiteral(pos, tf));
-            });
-        })
-        .label("bool");
-
-    // identifier
-    var identifier = tokenParser.identifier;
-    var identifierToken =
-        lq.getPosition.bind(function (pos) {
-            return identifier.bind(function (name) {
-                return lq.pure(new tokens.Identifier(pos, name));
-            });
-        })
-        .label("identifier");
-
-    // operator
-    var operator = tokenParser.operator;
-    var operatorToken =
-        lq.getPosition.bind(function (pos) {
-            return operator.bind(function (name) {
-                return lq.pure(new tokens.Operator(pos, name));
-            });
-        })
-        .label("operator");
-
-    var infixIdentifier =
-        tokenParser.symbol("`")
-        .right(identifier)
-        .left(tokenParser.symbol("`"));
-    var infixIdentifierToken =
-        lq.getPosition.bind(function (pos) {
-            return infixIdentifier.bind(function (name) {
-                return lq.pure(new tokens.InfixIdentifier(pos, name));
-            });
-        })
-        .label("operator");
-
-    var noBindingPattern = tokenParser.reserved("_");
-    var noBindingPatternToken =
-        lq.getPosition.bind(function (pos) {
-            return noBindingPattern.then(
-                lq.pure(new tokens.NoBindingPattern(pos))
-            );
-        })
-        .label("_");
-
-    // reserved word
-    var reservedWord =
-        lq.choice(
-            [
-                "if", "then", "else",
-                "and", "or",
-                "let", "in",
-                "begin", "end",
-                "while", "do",
-                "infix", "infixl", "infixr"
-            ].map(function (word) {
-                return tokenParser.reserved(word).then(lq.pure(word));
-            })
-        );
-    var reservedWordToken =
-        lq.getPosition.bind(function (pos) {
-            return reservedWord.bind(function (name) {
-                return lq.pure(new tokens.ReservedWord(pos, name));
-            });
-        })
-        .label("reserved word");
-
-    // reserved operator
-    var reservedOperator =
-        lq.choice(
-            [
-                "=", "\\", "->", ".", ":", "!", "?"
-            ].map(function (op) {
-                return tokenParser.reservedOp(op).then(lq.pure(op))
-            })
-        );
-    var reservedOperatorToken =
-        lq.getPosition.bind(function (pos) {
-            return reservedOperator.bind(function (name) {
-                return lq.pure(new tokens.ReservedOperator(pos, name));
-            });
-        })
-        .label("reserved operator");
-
-    // symbols
-    var openParen    = tokenParser.symbol("(");
-    var closeParen   = tokenParser.symbol(")");
-    var openBrace    = tokenParser.symbol("{");
-    var closeBrace   = tokenParser.symbol("}");
-    var openBracket  = tokenParser.symbol("[");
-    var closeBracket = tokenParser.symbol("]");
-    var comma        = tokenParser.comma;
-    var semicolon    = tokenParser.semi;
-    var symbol =
-        lq.choice([
-            openParen, closeParen,
-            openBrace, closeBrace,
-            openBracket, closeBracket,
-            comma, semicolon
-        ]);
-    var symbolToken =
-        lq.getPosition.bind(function (pos) {
-            return symbol.bind(function (name) {
-                return lq.pure(new tokens.Symbol(pos, name));
-            });
-        }).label("symbol");
-
-    var token =
-        lq.choice([
-            numberLiteralToken,
-            specialNumberLiteralToken,
-            stringLiteralToken,
-            boolLiteralToken,
-            identifierToken,
-            operatorToken,
-            infixIdentifierToken,
-            noBindingPatternToken,
-            reservedWordToken,
-            reservedOperatorToken,
-            symbolToken
-        ])
-        .label("token");
-
-    /**
-     * @static
-     * @type {loquat.Parser<string, *, Array.<module:parser/tokens.Token>>}
-     * @desc The tokenizer that consumers a stream of string.
-     */
-    var lexer =
-        tokenParser.whiteSpace
-        .then(token.many())
-        .left(lq.eof);
-
-    var shebang =
-        lq.optional(
-            lq.string("#!")
-            .then(lq.noneOf("\r\n").skipMany())
-            .then(lq.oneOf("\r\n"))
-        );
-
-    /**
-     * @static
-     * @type {loquat.Parser<string, *, Array.<module:parser/tokens.Token>>}
-     * @desc The tokenizer that consumers a stream of string.
-     *  A shebang at the head of the stream will be ignored.
-     */
-    var lexerEx = shebang.then(lexer);
-
-    end_module();
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports, __webpack_require__) {
-
-    /*
-     * milktea : parser/parser.js
-     * copyright (c) 2015 Susisu
-     */
-
-    /**
-     * @module parser/parser
-     */
-
-    "use strict";
-
-    function end_module() {
-        module.exports = Object.freeze({
-            "ParserState" : ParserState,
-            "OperatorInfo": OperatorInfo,
-            "parser"      : parser
-        });
-    }
-
-    var lq = __webpack_require__(6);
-
-    var core   = __webpack_require__(1);
-    var tokens = __webpack_require__(24);
-
-    /**
-     * @static
-     * @class ParserState
-     * @param {object.<string, module:parser/parser.OperatorInfo>} operatorsInfo
-     */
-    function ParserState(operatorsInfo) {
-        this.operatorsInfo = operatorsInfo;
-    }
-
-    ParserState.prototype = Object.create(Object.prototype, /** @lends module:parser/parser.ParserState.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": ParserState
-        },
-        /**
-         * @member
-         * @function
-         * @return {module:parser/parser.ParserState}
-         * @desc Creates a new state that extends the original state.
-         */
-        "extend": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                var newOperatorsInfo = Object.create(this.operatorsInfo);
-                return new ParserState(newOperatorsInfo);
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class OperatorInfo
-     * @param {string} assoc
-     * @param {number} precedence
-     */
-    function OperatorInfo(assoc, precedence) {
-        this.assoc      = assoc;
-        this.precedence = precedence;
-    }
-
-    // token parsers
-    function token(calcValue) {
-        return lq.token(
-            function (token) { return token.toString(); },
-            calcValue,
-            function (token) { return token.pos; }
-        );
-    }
-
-    function tokenOf(tokenClass) {
-        return token(function (token) {
-            if (token instanceof tokenClass) {
-                return [token];
-            }
-            else {
-                return [];
-            }
-        });
-    }
-
-    // symbols
-    function tok_symbol(name) {
-        return token(function (token) {
-            if (token instanceof tokens.Symbol && token.name === name) {
-                return [token];
-            }
-            else {
-                return [];
-            }
-        })
-        .label(name);
-    }
-    var tok_openParen    = tok_symbol("(");
-    var tok_closeParen   = tok_symbol(")");
-    var tok_openBrace    = tok_symbol("{");
-    var tok_closeBrace   = tok_symbol("}");
-    var tok_openBracket  = tok_symbol("[");
-    var tok_closeBracket = tok_symbol("]");
-    var tok_comma        = tok_symbol(",");
-    var tok_semicolon    = tok_symbol(";");
-
-    // literals
-    var tok_natural = tokenOf(tokens.NaturalLiteral).label("natural");
-    var tok_float   = tokenOf(tokens.FloatLiteral).label("float");
-    var tok_number  = tok_natural.or(tok_float).label("number");
-    var tok_string  = tokenOf(tokens.StringLiteral).label("string");
-    var tok_bool    = tokenOf(tokens.BoolLiteral).label("bool");
-
-    // identifier
-    var tok_identifier = tokenOf(tokens.Identifier).label("identifier");
-
-    // operators
-    var tok_anyOperator     = tokenOf(tokens.Operator).label("operator");
-    var tok_infixIdentifier = tokenOf(tokens.InfixIdentifier).label("operator");
-    function tok_operator(name) {
-        return token(function (token) {
-            if (token instanceof tokens.Operator && token.name === name) {
-                return [token];
-            }
-            else {
-                return [];
-            }
-        })
-        .label(name);
-    }
-    function tok_operatorOf(assoc, precedence) {
-        return lq.getUserState.bind(function (state) {
-            return token(function (token) {
-                if (token instanceof tokens.Operator || token instanceof tokens.InfixIdentifier) {
-                    var info = state.operatorsInfo[token.name];
-                    var assocInfo =
-                        info === undefined
-                        ? lq.OperatorAssoc.ASSOC_LEFT
-                        : info.assoc; 
-                    var precedenceInfo =
-                        info === undefined
-                        ? 9
-                        : info.precedence;
-                    if (assocInfo === assoc && precedenceInfo === precedence) {
-                        return [token];
-                    }
-                    else {
-                        return [];
-                    }
-                }
-                else {
-                    return [];
-                }
-            });
-        });
-    }
-
-    // variable
-    var tok_variable =
-        tok_identifier
-        .or(lq.try(
-            tok_openParen.bind(function (open) {
-                return tok_anyOperator.bind(function (op) {
-                    return tok_closeParen
-                        .then(lq.pure(new tokens.Identifier(op.pos, op.name)));
-                });
-            })
-        ))
-        .label("variable");
-
-    // argument
-    var tok_noBindingPattern = tokenOf(tokens.NoBindingPattern).label("_");
-    var tok_argument = tok_variable.or(tok_noBindingPattern);
-
-    // reserved words
-    function tok_reservedWord(name) {
-        return token(function (token) {
-            if (token instanceof tokens.ReservedWord && token.name === name) {
-                return [token];
-            }
-            else {
-                return [];
-            }
-        })
-        .label("'" + name + "'");
-    }
-    var tok_if     = tok_reservedWord("if");
-    var tok_then   = tok_reservedWord("then");
-    var tok_else   = tok_reservedWord("else");
-    var tok_and    = tok_reservedWord("and");
-    var tok_or     = tok_reservedWord("or");
-    var tok_let    = tok_reservedWord("let");
-    var tok_in     = tok_reservedWord("in");
-    var tok_begin  = tok_reservedWord("begin");
-    var tok_end    = tok_reservedWord("end");
-    var tok_while  = tok_reservedWord("while");
-    var tok_do     = tok_reservedWord("do");
-    var tok_infix  = tok_reservedWord("infix");
-    var tok_infixl = tok_reservedWord("infixl");
-    var tok_infixr = tok_reservedWord("infixr");
-
-    // reserved operators
-    function tok_reservedOperator(name) {
-        return token(function (token) {
-            if (token instanceof tokens.ReservedOperator && token.name === name) {
-                return [token];
-            }
-            else {
-                return [];
-            }
-        })
-        .label(name);
-    }
-    var tok_equal     = tok_reservedOperator("=");
-    var tok_backslash = tok_reservedOperator("\\");
-    var tok_arrow     = tok_reservedOperator("->");
-    var tok_dot       = tok_reservedOperator(".");
-    var tok_colon     = tok_reservedOperator(":");
-    var tok_bang      = tok_reservedOperator("!");
-    var tok_question  = tok_reservedOperator("?");
-
-    // utility functions
-    function makeClosure(pos, args, body) {
-        if (args.length === 0) {
-            return body;
-        }
-        else {
-            var argNames =
-                args.map(function (arg) {
-                    return arg instanceof tokens.NoBindingPattern ? undefined : arg.name;
-                });
-            return new core.Closure(pos, argNames, body);
-        }
-    }
-
-    var prefixNegation =
-        new lq.Operator(
-            lq.OperatorType.PREFIX,
-            tok_operator("-").bind(function (op) {
-                return lq.pure(function (x) {
-                    return new core.Negation(op.pos, x)
-                });
-            })
-        );
-
-    function infixOperatorOf(assoc, precedence) {
-        return new lq.Operator(
-            lq.OperatorType.INFIX,
-            tok_operatorOf(assoc, precedence).bind(function (op) {
-                return lq.pure(function (x, y) {
-                    return new core.Application(
-                        op.pos,
-                        new core.Application(
-                            op.pos,
-                            new core.Variable(op.pos, op.name),
-                            x
-                        ),
-                        y
-                    )
-                });
-            }),
-            assoc
-        );
-    }
-
-    // expression
-    var expression = new lq.LazyParser(function () {
-        return lq.buildExpressionParser(
-            [
-                [
-                    prefixNegation
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  9),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  9),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 9)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  8),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  8),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 8)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  7),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  7),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 7)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  6),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  6),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 6)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  5),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  5),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 5)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  4),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  4),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 4)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  3),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  3),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 3)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  2),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  2),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 2)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  1),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  1),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 1)
-                ],
-                [
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_NONE,  0),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_LEFT,  0),
-                    infixOperatorOf(lq.OperatorAssoc.ASSOC_RIGHT, 0)
-                ],
-                [
-                    new lq.Operator(
-                        lq.OperatorType.INFIX,
-                        tok_and.bind(function (op) {
-                            return lq.pure(function (x, y) {
-                                return new core.CondAnd(op.pos, x, y);
-                            })
-                        }),
-                        lq.OperatorAssoc.ASSOC_RIGHT
-                    )
-                ],
-                [
-                    new lq.Operator(
-                        lq.OperatorType.INFIX,
-                        tok_or.bind(function (op) {
-                            return lq.pure(function (x, y) {
-                                return new core.CondOr(op.pos, x, y);
-                            })
-                        }),
-                        lq.OperatorAssoc.ASSOC_RIGHT
-                    )
-                ]
-            ],
-            operandExpr
-        )
-        .label("expression");
-    });
-
-    // literals
-    var numberLiteral =
-        tok_number.bind(function (token) {
-            return lq.pure(
-                new core.Literal(
-                    token.pos,
-                    new core.Value(core.DataType.NUMBER, token.value)
-                )
-            )
-        })
-        .label("number");
-    var stringLiteral =
-        tok_string.bind(function (token) {
-            return lq.pure(
-                new core.Literal(
-                    token.pos,
-                    new core.Value(core.DataType.STRING, token.value)
-                )
-            )
-        })
-        .label("string");
-    var boolLiteral =
-        tok_bool.bind(function (token) {
-            return lq.pure(
-                new core.Literal(token.pos, token.value ? core.__true__ : core.__false__)
-            )
-        })
-        .label("bool");
-    var unitLiteral =
-        lq.try(
-            tok_openParen.bind(function (open) {
-                return tok_closeParen.then(
-                    lq.pure(
-                        new core.Literal(open.pos, core.__unit__)
-                    )
-                );
-            })
-        )
-        .label("()");
-    var arrayLiteral =
-        tok_openBracket.bind(function (open) {
-            return expression.sepBy(tok_comma).bind(function (elems) {
-                return tok_closeBracket
-                    .then(lq.pure(new core.ArrayLiteral(open.pos, elems)));
-            });
-        })
-        .label("array");
-    var objectLiteral = (function () {
-        var prop =
-            tok_identifier.bind(function (name) {
-                return tok_colon.then(expression).bind(function (expr) {
-                    return lq.pure([name.name, expr]);
-                });
-            })
-            .label("property");
-        var propStr =
-            tok_string.bind(function (name) {
-                return tok_colon.then(expression).bind(function (expr) {
-                    return lq.pure([name.value, expr]);
-                });
-            })
-            .label("property");
-        return tok_openBrace.bind(function (open) {
-            return prop.or(propStr).sepBy(tok_comma).bind(function (props) {
-                return tok_closeBrace
-                    .then(lq.pure(new core.ObjectLiteral(open.pos, props)));
-            });
-        })
-        .label("object");
-    })();
-    var literal =
-        numberLiteral
-        .or(stringLiteral)
-        .or(boolLiteral)
-        .or(unitLiteral)
-        .or(arrayLiteral)
-        .or(objectLiteral);
-
-    // variables
-    var variable =
-        tok_variable.bind(function (token) {
-            return lq.pure(
-                new core.Variable(token.pos, token.name)
-            );
-        })
-        .label("variable");
-
-    // object accessor sections
-    var readPropertySec =
-        tok_dot.bind(function (dot) {
-            return tok_identifier.bind(function (id) {
-                return tok_closeParen
-                    .then(lq.pure(
-                        new core.ReadPropertySection(
-                            dot.pos,
-                            new core.Literal(
-                                id.pos,
-                                new core.Value(core.DataType.STRING, id.name)
-                            )
-                        )
-                    ));
-            });
-        });
-    var callMethodSec =
-        tok_colon.bind(function (colon) {
-            return tok_identifier.bind(function (id) {
-                return tok_closeParen
-                    .then(lq.pure(
-                        new core.CallMethodSection(
-                            colon.pos,
-                            new core.Literal(
-                                id.pos,
-                                new core.Value(core.DataType.STRING, id.name)
-                            )
-                        )
-                    ));
-            });
-        });
-    var writePropertySec =
-        tok_bang.bind(function (bang) {
-            return tok_identifier.bind(function (id) {
-                return tok_closeParen
-                    .then(lq.pure(
-                        new core.WritePropertySection(
-                            bang.pos,
-                            new core.Literal(
-                                id.pos,
-                                new core.Value(core.DataType.STRING, id.name)
-                            )
-                        )
-                    ));
-            });
-        });
-    var checkPropertySec =
-        tok_question.bind(function (question) {
-            return tok_identifier.bind(function (id) {
-                return tok_closeParen
-                    .then(lq.pure(
-                        new core.CheckPropertySection(
-                            question.pos,
-                            new core.Literal(
-                                id.pos,
-                                new core.Value(core.DataType.STRING, id.name)
-                            )
-                        )
-                    ));
-            });
-        })
-    var accessorSec =
-        lq.try(
-            tok_openParen.then(
-                readPropertySec
-                    .or(callMethodSec)
-                    .or(writePropertySec)
-                    .or(checkPropertySec)
-            )
-        )
-        .label("accessor");
-
-    // primitive expressions
-    var primExpr =
-        literal
-        .or(variable)
-        .or(accessorSec)
-        .or(expression.between(tok_openParen, tok_closeParen))
-        .label("");
-
-    // object accessors
-    var readPropertyAccessor =
-        tok_dot.bind(function (dot) {
-            return tok_identifier.bind(function (id) {
-                return lq.pure(function (obj) {
-                    return new core.ReadPropertyAccessor(
-                        dot.pos,
-                        obj,
-                        new core.Literal(
-                            id.pos,
-                            new core.Value(core.DataType.STRING, id.name)
-                        )
-                    );
-                });
-            });
-        });
-    var callMethodAccessor =
-        tok_colon.bind(function (colon) {
-            return tok_identifier.bind(function (id) {
-                return lq.pure(function (obj) {
-                    return new core.CallMethodAccessor(
-                        colon.pos,
-                        obj,
-                        new core.Literal(
-                            id.pos,
-                            new core.Value(core.DataType.STRING, id.name)
-                        )
-                    );
-                });
-            });
-        });
-    var writePropertyAccessor =
-        tok_bang.bind(function (bang) {
-            return tok_identifier.bind(function (id) {
-                return lq.pure(function (obj) {
-                    return new core.WritePropertyAccessor(
-                        bang.pos,
-                        obj,
-                        new core.Literal(
-                            id.pos,
-                            new core.Value(core.DataType.STRING, id.name)
-                        )
-                    );
-                });
-            });
-        });
-    var checkPropertyAccessor =
-        tok_question.bind(function (question) {
-            return tok_identifier.bind(function (id) {
-                return lq.pure(function (obj) {
-                    return new core.CheckPropertyAccessor(
-                        question.pos,
-                        obj,
-                        new core.Literal(
-                            id.pos,
-                            new core.Value(core.DataType.STRING, id.name)
-                        )
-                    );
-                });
-            });
-        });
-    var accessor =
-        readPropertyAccessor
-        .or(callMethodAccessor)
-        .or(writePropertyAccessor)
-        .or(checkPropertyAccessor);
-    var objExpr =
-        primExpr.bind(function (expr) {
-            return accessor.many().bind(function (accessors) {
-                return lq.pure(accessors.reduce(
-                    function (obj, acc) {
-                        return acc(obj);
-                    },
-                    expr
-                ));
-            });
-        });
-
-    // function applications
-    var appExpr =
-        objExpr.bind(function (func) {
-            return objExpr.many().bind(function (args) {
-                return lq.pure(
-                    args.reduce(
-                        function (f, arg) {
-                            return new core.Application(arg.pos, f, arg);
-                        },
-                        func
-                    )
-                );
-            });
-        });
-
-    // lambda abstraction
-    var lambdaExpr =
-        tok_backslash.bind(function (lambda) {
-            return tok_argument.many1().bind(function (args) {
-                return tok_arrow
-                    .then(expression)
-                    .bind(function (body) {
-                        return lq.pure(makeClosure(lambda.pos, args, body));
-                    });
-            })
-        })
-        .label("lambda");
-
-    // conditional
-    var condExpr =
-        tok_if.bind(function (cond) {
-            return expression.bind(function (test) {
-                return tok_then
-                    .then(expression)
-                    .bind(function (conseq) {
-                        return tok_else
-                            .then(expression)
-                            .bind(function (alt) {
-                                return lq.pure(new core.Conditional(cond.pos, test, conseq, alt));
-                            });
-                    });
-            })
-        })
-        .label("conditonal");
-
-    // local binding
-    var bindExpr = (function () {
-        var binding =
-            tok_variable.bind(function (id) {
-                return tok_argument.many().bind(function (args) {
-                    return tok_equal.then(expression).bind(function (expr) {
-                        return lq.pure([id.name, makeClosure(id.pos, args, expr)]);
-                    });
-                }); 
-            });
-        return tok_let.bind(function (bind) {
-            return binding.sepEndBy1(tok_semicolon).bind(function (binds) {
-                return tok_in.then(expression).bind(function (expr) {
-                    return lq.pure(new core.Binding(bind.pos, binds, expr));
-                });
-            });
-        })
-        .label("binding");
-    })();
-
-    // procedure
-    var procExpr =
-        tok_begin.bind(function (proc) {
-            return expression.sepEndBy1(tok_semicolon).bind(function (exprs) {
-                return tok_end.then(lq.pure(new core.Procedure(proc.pos, exprs)));
-            });
-        });
-
-    // loop
-    var loopExpr =
-        tok_while.bind(function (loop) {
-            return expression.bind(function (test) {
-                return tok_do.then(expression).bind(function (expr) {
-                    return lq.pure(new core.Loop(loop.pos, test, expr));
-                });
-            });
-        });
-
-    // operand of expression
-    var operandExpr =
-        appExpr
-        .or(lambdaExpr)
-        .or(condExpr)
-        .or(bindExpr)
-        .or(procExpr)
-        .or(loopExpr)
-        .label("operand");
-
-    // declarations
-    // definition
-    var definitionDecl = 
-        lq.try(
-            tok_variable.bind(function (id) {
-                return tok_argument.many().left(tok_equal).bind(function (args) {
-                    return lq.pure([id, args]);
-                });
-            })
-        ).bind(function (ids) {
-            return expression.bind(function (expr) {
-                var id   = ids[0];
-                var args = ids[1];
-                return lq.pure(
-                    new core.Definition(id.pos, id.name, makeClosure(id.pos, args, expr))
-                );
-            })
-        })
-        .label("variable definition");
-
-    // fixity declaration
-    var fixityDecl = (function () {
-        var tok_fixity =
-            tok_infix
-            .or(tok_infixl)
-            .or(tok_infixr)
-            .label("fixity");
-
-        function failWithPos(pos, message) {
-            return new lq.Parser(function (state, csuc, cerr, esuc, eerr) {
-                return eerr(
-                    new lq.ParseError(
-                        pos,
-                        [new lq.ErrorMessage(lq.ErrorMessageType.MESSAGE, message)]
-                    )
-                );
-            });
-        }
-
-        return tok_fixity.bind(function (fixity) {
-            return tok_natural.bind(function (precedence) {
-                if (precedence.value < 0 || 9 < precedence.value) {
-                    return failWithPos(
-                        precedence.pos,
-                        "precedence out of range: " + precedence.value.toString()
-                    );
-                }
-                else {
-                    return tok_anyOperator.or(tok_infixIdentifier).bind(function (op) {
-                        return lq.getUserState.bind(function (state) {
-                            var info = state.operatorsInfo[op.name];
-                            if (info === undefined) {
-                                var assoc;
-                                switch (fixity.name) {
-                                    case "infix" :
-                                        assoc = lq.OperatorAssoc.ASSOC_NONE;
-                                        break;
-                                    case "infixl":
-                                        assoc = lq.OperatorAssoc.ASSOC_LEFT;
-                                        break;
-                                    case "infixr":
-                                        assoc = lq.OperatorAssoc.ASSOC_RIGHT;
-                                        break;
-                                }
-                                var newState = state.extend();
-                                newState.operatorsInfo[op.name] = new OperatorInfo(assoc, precedence.value);
-                                return lq.setUserState(newState)
-                                    .then(lq.pure(new core.Empty(fixity.pos)));
-                            }
-                            else {
-                                return failWithPos(
-                                    op.pos,
-                                    "fixity already declared : " + op.name
-                                );
-                            }
-                        });
-                    });
-                }
-            });
-        })
-        .label("fixity declaration")
-    })();
-
-    var statement =
-        definitionDecl
-        .or(fixityDecl)
-        .or(expression)
-        .left(tok_semicolon.skipMany());
-
-    var head =
-        lq.optional(
-            lq.lookAhead(tokenOf(tokens.Token)).bind(function (token) {
-                return lq.setPosition(token.pos);
-            })
-        );
-
-    /**
-     * @static
-     * @type {loquat.Parser<module:parser/tokens.Token, module:parser/parser.ParserState, Array>}
-     * @desc The parser that consumes a stream of {@link module:parser/tokens.Token}.
-     *  The result type is pair (array) of {@link Array.<module:core.Statement>} and {@link module:parser/parser.ParserState}.
-     */
-    var parser =
-        head
-        .then(tok_semicolon.skipMany().label(""))
-        .then(statement.many()).bind(function (stmts) {
-            return lq.eof.then(lq.getUserState).bind(function (state) {
-                return lq.pure([stmts, state]);
-            });
-        });
-
-    end_module();
-
-
-/***/ },
 /* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -9280,7 +9280,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -9288,8 +9288,8 @@ var milktea =
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object   = __webpack_require__(8),
-        module_accessor = __webpack_require__(16);
+    var module_object   = __webpack_require__(10),
+        module_accessor = __webpack_require__(18);
 
     var INTERNAL_KEY = "__maybe__";
 
@@ -9607,12 +9607,12 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(19),
+    var utils         = __webpack_require__(21),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(8),
+    var module_object = __webpack_require__(10),
         module_maybe  = __webpack_require__(22);
 
     function fromJSONValue(value) {

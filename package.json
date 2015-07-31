@@ -1,6 +1,6 @@
 {
   "name": "milktea",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Functional object-oriented script language",
   "main": "index.js",
   "directories": {
