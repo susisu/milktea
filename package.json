@@ -1,7 +1,7 @@
 {
   "name": "milktea",
-  "version": "0.1.1",
-  "description": "Functional object-oriented script language",
+  "version": "0.1.2",
+  "description": "Functional object-oriented scripting language",
   "main": "index.js",
   "directories": {
     "test": "test",
@@ -22,10 +22,10 @@
   "homepage": "https://github.com/susisu/milktea",
   "dependencies": {
     "commander": "^2.8.1",
-    "loquat": "^1.2.1"
+    "loquat": "^1.3.1"
   },
   "devDependencies": {
-    "gulp": "^3.8.11",
-    "gulp-webpack": "^1.4.0"
+    "gulp": "^3.9.0",
+    "webpack-stream": "^2.1.1"
   }
 }

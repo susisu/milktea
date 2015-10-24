@@ -1,7 +1,7 @@
 {
   "name": "milktea",
   "main": "dist/milktea.min.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Functional object-oriented script language",
   "homepage": "https://github.com/susisu/milktea",
   "authors": [
