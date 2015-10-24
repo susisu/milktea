@@ -1,5 +1,5 @@
 # milktea
-The *milktea* is a functional object-oriented script language written in JavaScript.
+The *milktea* is a functional object-oriented scripting language written in JavaScript.
 
 ## Features
 * Dynamic typing
@@ -25,7 +25,7 @@ To run *milktea* in your script, like this:
 var mlkt = require("milktea");
 var res;
 try {
-    res = mlkt.parse(<filename:string>, <source:string>);
+    res = mlkt.parser.parse(<filename:string>, <source:string>);
 }
 catch (err) {
     // parse error
