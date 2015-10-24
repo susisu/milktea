@@ -1,5 +1,5 @@
 /*!
- * milktea 0.1.1
+ * milktea 0.1.2
  * copyright (c) 2015 Susisu | MIT License
  * https://github.com/susisu/milktea
  */
@@ -68,8 +68,8 @@ var milktea =
             "core"   : __webpack_require__(1),
             "errors" : __webpack_require__(2),
             "parser" : __webpack_require__(3),
-            "lib"    : __webpack_require__(4),
-            "prelude": __webpack_require__(5)
+            "lib"    : __webpack_require__(8),
+            "prelude": __webpack_require__(22)
         });
     }
 
@@ -1749,7 +1749,7 @@ var milktea =
 
 /***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
     /*
      * milktea : errors.js
@@ -2079,10 +2079,10 @@ var milktea =
         });
     }
 
-    var lq = __webpack_require__(6);
+    var lq = __webpack_require__(4);
 
-    var lexer  = __webpack_require__(7);
-    var parser = __webpack_require__(8);
+    var lexer  = __webpack_require__(5);
+    var parser = __webpack_require__(7);
 
     /**
      * @static
@@ -2137,7 +2137,7 @@ var milktea =
      * @desc Tokenizes the source.
      */
     function lex(name, source) {
-        var result = lq.parse(lexer.lexer, name, source);
+        var result = lq.parse(lexer.lexer, name, source, 8);
         if (result.succeeded) {
             return result.value;
         }
@@ -2155,7 +2155,7 @@ var milktea =
      * @desc Tokenizes the source, ignoring a shebang at the head.
      */
     function lexEx(name, source) {
-        var result = lq.parse(lexer.lexerEx, name, source);
+        var result = lq.parse(lexer.lexerEx, name, source, 8);
         if (result.succeeded) {
             return result.value;
         }
@@ -2236,7 +2236,7 @@ var milktea =
      * @desc Parses the tokens with the specified state.
      */
     function parseTokensWithState(name, tokens, state) {
-        var result = lq.parse(parser.parser, name, tokens, state);
+        var result = lq.parse(parser.parser, name, tokens, 8, state);
         if (result.succeeded) {
             return result.value;
         }
@@ -2250,323 +2250,12 @@ var milktea =
 
 /***/ },
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-    /*
-     * milktea : lib.js
-     * copyright (c) 2015 Susisu
-     */
-
-    /**
-     * @module lib
-     */
-
-    "use strict";
-
-    function end_module() {
-        module.exports = Object.freeze(/** @lends module:lib */ {
-            /**
-             * @see module:lib/general
-             * @see module:lib/object
-             * @see module:lib/unit
-             * @see module:lib/number
-             * @see module:lib/string
-             * @see module:lib/bool
-             * @see module:lib/function
-             * @see module:lib/reference
-             * @see module:lib/array
-             * @see module:lib/accessor
-             * @see module:lib/date
-             * @see module:lib/regexp
-             */
-            "modules": {
-                "general"  : __webpack_require__(9),
-                "object"   : __webpack_require__(10),
-                "unit"     : __webpack_require__(11),
-                "number"   : __webpack_require__(12),
-                "string"   : __webpack_require__(13),
-                "bool"     : __webpack_require__(14),
-                "function" : __webpack_require__(15),
-                "reference": __webpack_require__(16),
-                "array"    : __webpack_require__(17),
-                "accessor" : __webpack_require__(18),
-                "date"     : __webpack_require__(19),
-                "regexp"   : __webpack_require__(20),
-            },
-            /**
-             * @see module:lib/utils
-             */
-            "utils": __webpack_require__(21)
-        });
-    }
-
-    end_module();
-
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-    /*
-     * milktea : prelude.js
-     * copyright (c) 2015 Susisu
-     */
-
-    /*
-     * @module prelude
-     */
-
-    "use strict";
-
-    function end_module() {
-        module.exports = Object.freeze(prelude);
-    }
-
-    var module_general   = __webpack_require__(9),
-        module_object    = __webpack_require__(10),
-        module_unit      = __webpack_require__(11),
-        module_number    = __webpack_require__(12),
-        module_string    = __webpack_require__(13),
-        module_bool      = __webpack_require__(14),
-        module_function  = __webpack_require__(15),
-        module_reference = __webpack_require__(16),
-        module_array     = __webpack_require__(17),
-        module_accessor  = __webpack_require__(18),
-        module_date      = __webpack_require__(19),
-        module_regexp    = __webpack_require__(20),
-        module_maybe     = __webpack_require__(22),
-        module_json      = __webpack_require__(23);
-
-    var prelude = Object.create(null);
-
-    prelude["__negate__"]          = module_number.__negate__;
-    prelude["__createObject__"]    = module_object.__createObject__;
-    prelude["__Object__proto__"]   = module_object.__Object__proto__;
-    prelude["__readProperty__"]    = module_accessor.__readProperty__;
-    prelude["__callMethod__"]      = module_accessor.__callMethod__;
-    prelude["__writeProperty__"]   = module_accessor.__writeProperty__;
-    prelude["__checkProperty__"]   = module_accessor.__checkProperty__;
-    prelude["__readPropertyOf__"]  = module_accessor.__readPropertyOf__;
-    prelude["__callMethodOf__"]    = module_accessor.__callMethodOf__;
-    prelude["__writePropertyOf__"] = module_accessor.__writePropertyOf__;
-    prelude["__checkPropertyOf__"] = module_accessor.__checkPropertyOf__;
-
-    prelude["id"]      = module_general.__id__;
-    prelude["const"]   = module_general.__const__;
-    prelude["trace"]   = module_general.__trace__;
-    prelude["error"]   = module_general.__error__;
-    prelude["typeOf"]  = module_general.__typeOf__;
-    prelude["max"]     = module_general.__max__;
-    prelude["min"]     = module_general.__min__;
-    prelude["=="]      = module_general.__equalTo__
-    prelude["/="]      = module_general.__notEqualTo__
-    prelude["<"]       = module_general.__lessThan__
-    prelude["<="]      = module_general.__lessThanOrEqualTo__
-    prelude[">"]       = module_general.__greaterThan__
-    prelude[">="]      = module_general.__greaterThanOrEqualTo__
-    prelude["compare"] = module_general.__compare__;
-
-    prelude["createObject"]      = module_object.__createObject__;
-    prelude["Object"]            = module_object.__Object__;
-    prelude["Class"]             = module_object.__Class__;
-    prelude["isObject"]          = module_object.__isObject__;
-    prelude["instanceOf"]        = module_object.__instanceOf__;
-    prelude["delete"]            = module_object.__delete__;
-    prelude["assign"]            = module_object.__assign__;
-    prelude["orphan"]            = module_object.__orphan__;
-    prelude["keys"]              = module_object.__keys__;
-    prelude["preventExtensions"] = module_object.__preventExtensions__;
-    prelude["seal"]              = module_object.__seal__;
-    prelude["freeze"]            = module_object.__freeze__;
-    prelude["isExtensible"]      = module_object.__isExtensible__;
-    prelude["isSealed"]          = module_object.__isSealed__;
-    prelude["isFrozen"]          = module_object.__isFrozen__;
-
-    prelude["Unit"]   = module_unit.__Unit__;
-    prelude["isUnit"] = module_unit.__isUnit__;
-    prelude["void"]   = module_unit.__void__;
-
-    prelude["Number"]     = module_number.__Number__;
-    prelude["isNumber"]   = module_number.__isNumber__;
-    prelude["isNaN"]      = module_number.__isNaN__;
-    prelude["isFinite"]   = module_number.__isFinite__;
-    prelude["isInteger"]  = module_number.__isInteger__;
-    prelude["toInteger"]  = module_number.__toInteger__;
-    prelude["parseInt"]   = module_number.__parseInt__;
-    prelude["parseFloat"] = module_number.__parseFloat__;
-    prelude["negate"]     = module_number.__negate__;
-    prelude["add"]        = module_number.__abs__;
-    prelude["signum"]     = module_number.__signum__;
-    prelude["+"]          = module_number.__add__;
-    prelude["-"]          = module_number.__sub__;
-    prelude["*"]          = module_number.__mul__;
-    prelude["/"]          = module_number.__div__;
-    prelude["mod"]        = module_number.__mod__;
-    prelude["**"]         = module_number.__pow__;
-    prelude["round"]      = module_number.__round__;
-    prelude["ceiling"]    = module_number.__ceiling__;
-    prelude["floor"]      = module_number.__floor__;
-    prelude["sqrt"]       = module_number.__sqrt__;
-    prelude["exp"]        = module_number.__exp__;
-    prelude["log"]        = module_number.__log__;
-    prelude["logBase"]    = module_number.__logBase__;
-    prelude["sin"]        = module_number.__sin__;
-    prelude["cos"]        = module_number.__cos__;
-    prelude["tan"]        = module_number.__tan__;
-    prelude["asin"]       = module_number.__asin__;
-    prelude["acos"]       = module_number.__acos__;
-    prelude["atan"]       = module_number.__atan__;
-    prelude["atan2"]      = module_number.__atan2__;
-    prelude["random"]     = module_number.__random__;
-
-    prelude["String"]          = module_string.__String__;
-    prelude["isString"]        = module_string.__isString__;
-    prelude["charAt"]          = module_string.__charAt__;
-    prelude["charCodeAt"]      = module_string.__charCodeAt__;
-    prelude["charCode"]        = module_string.__charCode__;
-    prelude["fromCharCode"]    = module_string.__fromCharCode__;
-    prelude["strlen"]          = module_string.__length__;
-    prelude["strempty"]        = module_string.__empty__;
-    prelude["toUpperCase"]     = module_string.__toUpperCase__;
-    prelude["toLowerCase"]     = module_string.__toLowerCase__;
-    prelude["strrev"]          = module_string.__reverse__;
-    prelude["strcat"]          = module_string.__concat__;
-    prelude["++"]              = module_string.__concat__;
-    prelude["split"]           = module_string.__split__;
-    prelude["lines"]           = module_string.__lines__;
-    prelude["words"]           = module_string.__words__;
-    prelude["replace"]         = module_string.__replace__;
-    prelude["replaceWith"]     = module_string.__replaceWith__;
-    prelude["trim"]            = module_string.__trim__;
-    prelude["strslice"]        = module_string.__slice__;
-    prelude["indexOfFrom"]     = module_string.__indexOfFrom__;
-    prelude["indexOf"]         = module_string.__indexOf__;
-    prelude["lastIndexOfFrom"] = module_string.__lastIndexOfFrom__;
-    prelude["lastIndexOf"]     = module_string.__lastIndexOf__;
-    prelude["strcycle"]        = module_string.__cycle__;
-
-    prelude["Bool"]   = module_bool.__Bool__;
-    prelude["isBool"] = module_bool.__isBool__;
-    prelude["not"]    = module_bool.__not__;
-    prelude["&&"]     = module_bool.__and__;
-    prelude["||"]     = module_bool.__or__;
-
-    prelude["Function"]   = module_function.__Function__;
-    prelude["isFunction"] = module_function.__isFunction__;
-    prelude["@"]          = module_function.__compose__;
-    prelude["flip"]       = module_function.__flip__;
-    prelude["$"]          = module_function.__apply__;
-    prelude["&"]          = module_function.__reverseApply__;
-    prelude["on"]         = module_function.__on__;
-
-    prelude["Reference"]   = module_reference.__Reference__;
-    prelude["isReference"] = module_reference.__isReference__;
-    prelude["ref"]         = module_reference.__ref__;
-    prelude["readRef"]     = module_reference.__readRef__;
-    prelude["writeRef"]    = module_reference.__writeRef__;
-    prelude[":="]          = module_reference.__writeRef__;
-    prelude["modifyRef"]   = module_reference.__modifyRef__;
-
-    prelude["Array"]             = module_array.__Array__;
-    prelude["isArray"]           = module_array.__isArray__;
-    prelude["newArray"]          = module_array.__newArray__;
-    prelude["readArray"]         = module_array.__readArray__;
-    prelude["!!"]                = module_array.__readArray__;
-    prelude["writeArray"]        = module_array.__writeArray__;
-    prelude["pop"]               = module_array.__pop__;
-    prelude["push"]              = module_array.__push__;
-    prelude["shift"]             = module_array.__shift__;
-    prelude["unshift"]           = module_array.__unshift__;
-    prelude["insertAt"]          = module_array.__insertAt__;
-    prelude["removeAt"]          = module_array.__removeAt__;
-    prelude["head"]              = module_array.__head__;
-    prelude["last"]              = module_array.__last__;
-    prelude["tail"]              = module_array.__tail__;
-    prelude["init"]              = module_array.__init__;
-    prelude["fst"]               = module_array.__fst__;
-    prelude["snd"]               = module_array.__snd__;
-    prelude["length"]            = module_array.__length__;
-    prelude["empty"]             = module_array.__empty__;
-    prelude["reverse"]           = module_array.__reverse__;
-    prelude["concat"]            = module_array.__concat__;
-    prelude["join"]              = module_array.__join__;
-    prelude["map"]               = module_array.__map__;
-    prelude["map_"]              = module_array.__map$__;
-    prelude["for"]               = module_array.__for__;
-    prelude["for_"]              = module_array.__for$__;
-    prelude["foldl"]             = module_array.__foldl__;
-    prelude["foldl1"]            = module_array.__foldl1__;
-    prelude["foldr"]             = module_array.__foldr__;
-    prelude["foldr1"]            = module_array.__foldr1__;
-    prelude["all"]               = module_array.__all__;
-    prelude["any"]               = module_array.__any__;
-    prelude["sum"]               = module_array.__sum__;
-    prelude["product"]           = module_array.__product__;
-    prelude["maximum"]           = module_array.__maximum__;
-    prelude["minimum"]           = module_array.__minimum__;
-    prelude["take"]              = module_array.__take__;
-    prelude["drop"]              = module_array.__drop__;
-    prelude["takeWhile"]         = module_array.__takeWhile__;
-    prelude["dropWhile"]         = module_array.__dropWhile__;
-    prelude["slice"]             = module_array.__slice__;
-    prelude["sortBy"]            = module_array.__sortBy__;
-    prelude["sort"]              = module_array.__sort__;
-    prelude["sortOn"]            = module_array.__sortOn__;
-    prelude["findIndexFrom"]     = module_array.__findIndexFrom__;
-    prelude["findIndex"]         = module_array.__findIndex__;
-    prelude["findLastIndexFrom"] = module_array.__findLastIndexFrom__;
-    prelude["findLastIndex"]     = module_array.__findLastIndex__;
-    prelude["elemIndexFrom"]     = module_array.__elemIndexFrom__;
-    prelude["elemIndex"]         = module_array.__elemIndex__;
-    prelude["elemLastIndexFrom"] = module_array.__elemLastIndexFrom__;
-    prelude["elemLastIndex"]     = module_array.__elemLastIndex__;
-    prelude["elem"]              = module_array.__elem__;
-    prelude["notElem"]           = module_array.__notElem__;
-    prelude["zip"]               = module_array.__zip__;
-    prelude["zipWith"]           = module_array.__zipWith__;
-    prelude["range"]             = module_array.__range__;
-    prelude["range'"]            = module_array.__range$__;
-    prelude[".."]                = module_array.__range$__;
-    prelude["replicate"]         = module_array.__replicate__;
-    prelude["cycle"]             = module_array.__cycle__;
-
-    prelude["toObject"]        = module_accessor.__toObject__;
-    prelude["readProperty"]    = module_accessor.__readProperty__;
-    prelude["callMethod"]      = module_accessor.__callMethod__;
-    prelude["writeProperty"]   = module_accessor.__writeProperty__;
-    prelude["checkProperty"]   = module_accessor.__checkProperty__;
-    prelude["readPropertyOf"]  = module_accessor.__readPropertyOf__;
-    prelude["callMethodOf"]    = module_accessor.__callMethodOf__;
-    prelude["writePropertyOf"] = module_accessor.__writePropertyOf__;
-    prelude["checkPropertyOf"] = module_accessor.__checkPropertyOf__;
-
-    prelude["Date"] = module_date.__Date__;
-
-    prelude["RegExp"]        = module_regexp.__RegExp__;
-    prelude["splitRE"]       = module_regexp.__splitRE__;
-    prelude["replaceRE"]     = module_regexp.__replaceRE__;
-    prelude["replaceREWith"] = module_regexp.__replaceREWith__;
-
-    prelude["Nothing"] = module_maybe.__Nothing__;
-    prelude["Just"]    = module_maybe.__Just__;
-    prelude["nothing"] = module_maybe.__nothing__;
-    prelude["just"]    = module_maybe.__just__;
-    prelude["maybe"]   = module_maybe.__maybe__;
-
-    prelude["fromJSON"] = module_json.__fromJSON__;
-    prelude["toJSON"]   = module_json.__toJSON__;
-
-    end_module();
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
     module.exports = loquat;
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -2587,9 +2276,9 @@ var milktea =
         });
     }
 
-    var lq = __webpack_require__(6);
+    var lq = __webpack_require__(4);
 
-    var tokens = __webpack_require__(24);
+    var tokens = __webpack_require__(6);
 
     var langDef = new lq.LanguageDef(
         "{-",
@@ -2811,7 +2500,493 @@ var milktea =
 
 
 /***/ },
-/* 8 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+    /*
+     * milktea : parser/tokens.js
+     * copyright (c) 2015 Susisu
+     */
+
+    /**
+     * @module parser/tokens
+     */
+
+    "use strict";
+
+    function end_module() {
+        module.exports = Object.freeze({
+            "Token"           : Token,
+            "NaturalLiteral"  : NaturalLiteral,
+            "FloatLiteral"    : FloatLiteral,
+            "StringLiteral"   : StringLiteral,
+            "BoolLiteral"     : BoolLiteral,
+            "NullLiteral"     : NullLiteral,
+            "Identifier"      : Identifier,
+            "Operator"        : Operator,
+            "InfixIdentifier" : InfixIdentifier,
+            "NoBindingPattern": NoBindingPattern,
+            "ReservedWord"    : ReservedWord,
+            "ReservedOperator": ReservedOperator,
+            "Symbol"          : Symbol
+        });
+    }
+
+    var lq = __webpack_require__(4);
+
+    /**
+     * @static
+     * @class Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     */
+    function Token(pos) {
+        this.pos = pos;
+    }
+
+    Token.prototype = Object.create(Object.prototype, /** @lends module:parser/tokens.Token.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": Token
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "unknown token";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class NaturalLiteral
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {number} value
+     */
+    function NaturalLiteral(pos, value) {
+        Token.call(this, pos);
+        this.value = value;
+    }
+
+    NaturalLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NaturalLiteral.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": NaturalLiteral
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "number " + this.value.toString();
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class FloatLiteral
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {number} value
+     */
+    function FloatLiteral(pos, value) {
+        Token.call(this, pos);
+        this.value = value;
+    }
+
+    FloatLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.FloatLiteral.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": FloatLiteral
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "number " + this.value.toString();
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class StringLiteral
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} value
+     */
+    function StringLiteral(pos, value) {
+        Token.call(this, pos);
+        this.value = value;
+    }
+
+    StringLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.StringLiteral.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": StringLiteral
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "string " + lq.show(this.value);
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class BoolLiteral
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {bool} value
+     */
+    function BoolLiteral(pos, value) {
+        Token.call(this, pos);
+        this.value = value;
+    }
+
+    BoolLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.BoolLiteral.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": BoolLiteral
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "bool " + (this.value ? "true" : "false");
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class NullLiteral
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     */
+    function NullLiteral(pos) {
+        Token.call(this, pos);
+    }
+
+    NullLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NullLiteral.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": NullLiteral
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "null";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class Identifier
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function Identifier(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    Identifier.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Identifier.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": Identifier
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "identifier '" + this.name + "'";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class Operator
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function Operator(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    Operator.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Operator.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": Operator
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "operator " + this.name;
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class InfixIdentifier
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function InfixIdentifier(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    InfixIdentifier.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.InfixIdentifier.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": InfixIdentifier
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "operator `" + this.name + "`";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class NoBindingPattern
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     */
+    function NoBindingPattern(pos) {
+        Token.call(this, pos);
+    }
+
+    NoBindingPattern.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NoBindingPattern.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": NoBindingPattern
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "_";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class ReservedWord
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function ReservedWord(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    ReservedWord.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.ReservedWord.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": ReservedWord
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return "reserved word '" + this.name + "'";
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class ReservedOperator
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function ReservedOperator(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    ReservedOperator.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.ReservedOperator.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": ReservedOperator
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return this.name;
+            }
+        }
+    });
+
+    /**
+     * @static
+     * @class Symbol
+     * @extends module:parser/tokens.Token
+     * @param {loquat.SourcePos} pos The position in the source.
+     * @param {string} name
+     */
+    function Symbol(pos, name) {
+        Token.call(this, pos);
+        this.name = name;
+    }
+
+    Symbol.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Symbol.prototype */ {
+        /**
+         * @member
+         */
+        "constructor": {
+            "writable"    : true,
+            "configurable": true,
+            "value": Symbol
+        },
+        /**
+         * @member
+         * @function
+         * @return {string} The string representation of the token.
+         */
+        "toString": {
+            "writable"    : true,
+            "configurable": true,
+            "value": function () {
+                return this.name;
+            }
+        }
+    });
+
+    end_module();
+
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -2833,10 +3008,10 @@ var milktea =
         });
     }
 
-    var lq = __webpack_require__(6);
+    var lq = __webpack_require__(4);
 
     var core   = __webpack_require__(1);
-    var tokens = __webpack_require__(24);
+    var tokens = __webpack_require__(6);
 
     /**
      * @static
@@ -3621,6 +3796,61 @@ var milktea =
 
 
 /***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+    /*
+     * milktea : lib.js
+     * copyright (c) 2015 Susisu
+     */
+
+    /**
+     * @module lib
+     */
+
+    "use strict";
+
+    function end_module() {
+        module.exports = Object.freeze(/** @lends module:lib */ {
+            /**
+             * @see module:lib/general
+             * @see module:lib/object
+             * @see module:lib/unit
+             * @see module:lib/number
+             * @see module:lib/string
+             * @see module:lib/bool
+             * @see module:lib/function
+             * @see module:lib/reference
+             * @see module:lib/array
+             * @see module:lib/accessor
+             * @see module:lib/date
+             * @see module:lib/regexp
+             */
+            "modules": {
+                "general"  : __webpack_require__(9),
+                "object"   : __webpack_require__(11),
+                "unit"     : __webpack_require__(12),
+                "number"   : __webpack_require__(13),
+                "string"   : __webpack_require__(14),
+                "bool"     : __webpack_require__(15),
+                "function" : __webpack_require__(16),
+                "reference": __webpack_require__(17),
+                "array"    : __webpack_require__(18),
+                "accessor" : __webpack_require__(19),
+                "date"     : __webpack_require__(20),
+                "regexp"   : __webpack_require__(21),
+            },
+            /**
+             * @see module:lib/utils
+             */
+            "utils": __webpack_require__(10)
+        });
+    }
+
+    end_module();
+
+
+/***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -3663,7 +3893,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils       = __webpack_require__(21),
+    var utils       = __webpack_require__(10),
         assertType  = utils.assertType,
         assertTypes = utils.assertTypes;
 
@@ -3952,6 +4182,320 @@ var milktea =
 /***/ function(module, exports, __webpack_require__) {
 
     /*
+     * milktea : lib/utils.js
+     * copyright (c) 2015 Susisu
+     */
+
+    /**
+     * @module lib/utils
+     */
+
+    "use strict";
+
+    function end_module() {
+        module.exports = Object.freeze({
+            "assertType"       : assertType,
+            "assertTypes"      : assertTypes,
+            "createObject"     : createObject,
+            "readProperty"     : readProperty,
+            "callMethod"       : callMethod,
+            "writeProperty"    : writeProperty,
+            "checkProperty"    : checkProperty,
+            "deleteProperty"   : deleteProperty,
+            "referenceToString": referenceToString,
+            "arrayToString"    : arrayToString,
+            "readInternalProperty" : readInternalProperty,
+            "writeInternalProperty": writeInternalProperty
+        });
+    }
+
+    var core         = __webpack_require__(1),
+        Value        = core.Value,
+        DataType     = core.DataType,
+        calcTailCall = core.calcTailCall;
+
+    var errors = __webpack_require__(2);
+
+    /**
+     * @static
+     * @param {module:core.Value} value The value to be checked its type.
+     * @param {string} type The type that should match that of the value.
+     * @throws {module:errors.RuntimeError} The type is mismatched.
+     * @desc Asserts that the value has the specified type.
+     */
+    function assertType(value, type) {
+        if (value.type !== type) {
+            throw errors.typeError(undefined, type, value.type);
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} value The value to be checked its type.
+     * @param {Array.<string>} types An array of the types that one of those should match that of the value.
+     * @throws {module:errors.RuntimeError} The type is mismatched.
+     * @desc Asserts that the value has one of the specified types.
+     */
+    function assertTypes(value, types) {
+        var match = false;
+        for (var i = 0; i < types.length; i++) {
+            if (value.type === types[i]) {
+                match = true;
+                break;
+            }
+        }
+        if (!match) {
+            var typesStr = types.slice(0, -1).join(", ") + " or " + types[types.length - 1];
+            throw errors.typeError(undefined, typesStr, value.type);
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} parent The object value to be the parent of the new object.
+     * @return {module:core.Value} A new object value.
+     * @desc Creates a new object value with the specified parent.
+     */
+    function createObject(parent) {
+        return new Value(
+            DataType.OBJECT,
+            Object.create(parent.data)
+        );
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} propName The name of the property
+     * @return {module:core.Value} The property of the object.
+     * @throws {module:errors.RuntimeError} The object is null or the property is not found.
+     * @desc Reads a property of the object.
+     */
+    function readProperty(obj, propName) {
+        if (obj.data === null) {
+            throw errors.readNullObjectError(undefined);
+        }
+        var prop = obj.data[propName];
+        if (prop === undefined) {
+            throw errors.propertyNotFoundError(undefined, propName);
+        }
+        else {
+            return prop;
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} methodName The name of the property.
+     * @return {module:core.Value} The result of calling the method.
+     * @throws {module:errors.RuntimeError} The object is null or the property is not found.
+     * @desc Calls a method of the object.
+     */
+    function callMethod(obj, methodName) {
+        if (obj.data === null) {
+            throw errors.readNullObjectError(undefined);
+        }
+        var prop = obj.data[methodName];
+        if (prop === undefined) {
+            throw errors.propertyNotFoundError(undefined, methodName);
+        }
+        else {
+            assertType(prop, DataType.FUNCTION);
+            return prop.data(obj);
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object
+     * @param {string} propName The name of the property
+     * @param {module:core.Value} value The value to be written.
+     * @throws {module:errors.RuntimeError} The object is null or not writable.
+     */
+    function writeProperty(obj, propName, value) {
+        if (obj.data === null) {
+            throw errors.writeNullObjectError(undefined);
+        }
+        var desc = Object.getOwnPropertyDescriptor(obj.data, propName);
+        if (desc === undefined) {
+            if (!Object.isExtensible(obj.data)) {
+                throw errors.cannotWriteError(undefined, propName);
+            }
+            Object.defineProperty(obj.data, propName, {
+                "writable"    : true,
+                "configurable": true,
+                "enumerable"  : true,
+                "value": value
+            });
+        }
+        else {
+            if (!desc["writable"]) {
+                throw errors.cannotWriteError(undefined, propName);
+            }
+            obj.data[propName] = value;
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} propName The name of the property.
+     * @return {boolean} A boolean value that describes Whether the object has the property.
+     */
+    function checkProperty(obj, propName) {
+        if (obj.data === null) {
+            return false;
+        }
+        var prop = obj.data[propName];
+        if (prop === undefined) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} propName The name of the property.
+     */
+    function deleteProperty(obj, propName) {
+        try {
+            delete obj.data[propName];
+        }
+        catch (err) {
+            throw errors.cannotDeleteError(undefined, propName);
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} ref The reference value.
+     * @param {Array.<module:core.Value>} blackList The list of values to avoid circular reference.
+     * @return {module:core.Value} The string value that represents the reference.
+     * @throws {module:errors.RuntimeError} Some runtime error occurs.
+     */
+    function referenceToString(ref, blackList) {
+        if (blackList.indexOf(ref) >= 0) {
+            return new Value(
+                DataType.STRING,
+                "<circular>"
+            );
+        }
+        var str;
+        switch (ref.data.type) {
+            case DataType.OBJECT:
+                str = calcTailCall(callMethod(ref.data, "toString"));
+                break;
+            case DataType.REFERENCE:
+                str = referenceToString(ref.data, blackList.concat(ref));
+                break;
+            case DataType.ARRAY:
+                str = arrayToString(ref.data, blackList.concat(ref));
+                break;
+            default:
+                str = new Value(DataType.STRING, ref.data.toString());
+        }
+        assertType(str, DataType.STRING);
+        return new Value(
+            DataType.STRING,
+            "<ref: " + str.data + ">"
+        );
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} arr The array value.
+     * @param {Array.<module:core.Value>} blackList The list of values to avoid circular reference.
+     * @return {module:core.Value} The string value that represents the array.
+     * @throws {module:errors.RuntimeError} Some runtime error occurs.
+     */
+    function arrayToString(arr, blackList) {
+        var str =
+            arr.data.map(function (elem) {
+                if (blackList.indexOf(elem) >= 0) {
+                    return "<circular>";
+                }
+                var elemStr;
+                switch (elem.type) {
+                    case DataType.OBJECT:
+                        elemStr = calcTailCall(callMethod(elem, "toString"));
+                        break;
+                    case DataType.REFERENCE:
+                        elemStr = referenceToString(elem, blackList.concat(arr));
+                        break;
+                    case DataType.ARRAY:
+                        elemStr = arrayToString(elem, blackList.concat(arr));
+                        break;
+                    default:
+                        elemStr = new Value(DataType.STRING, elem.toString());
+                }
+                assertType(elemStr, DataType.STRING);
+                return elemStr.data;
+            })
+            .join(",");
+        return new Value(
+            DataType.STRING,
+            "[" + str + "]"
+        );
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} key The key of the internal namespace.
+     * @param {string} propName The name of the internal property.
+     * @return {module:core.Value} The internal property of the object.
+     * @throws {module:errors.RuntimeError} The object has no internal namespace or does not have the proeprty.
+     */
+    function readInternalProperty(obj, key, propName) {
+        if (!obj.hasOwnProperty("internals")) {
+            throw errors.noInternalNamespaceError(undefined);
+        }
+        if (!obj.internals.hasOwnProperty(key)) {
+            throw errors.readInternalPropertyError(undefined, key, propName);
+        }
+        if (!obj.internals[key].hasOwnProperty(propName)) {
+            throw errors.readInternalPropertyError(undefined, key, propName);
+        }
+        else {
+            return obj.internals[key][propName];
+        }
+    }
+
+    /**
+     * @static
+     * @param {module:core.Value} obj The target object.
+     * @param {string} key The key of the internal namespace.
+     * @param {string} propName The name of the internal property.
+     * @param {module:core.Value} value The value to be written.
+     * @throws {module:errors.RuntimeError} The object has no internal namespace.
+     */
+    function writeInternalProperty(obj, key, propName, value) {
+        if (!obj.hasOwnProperty("internals")) {
+            throw errors.noInternalNamespaceError(undefined);
+        }
+        if (!obj.internals.hasOwnProperty(key)) {
+            obj.internals[key] = {};
+        }
+        Object.defineProperty(obj.internals[key], propName, {
+            "writable"    : true,
+            "configurable": true,
+            "enumerable"  : true,
+            "value": value
+        });
+    }
+
+    end_module();
+
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+    /*
      * milktea : lib/object.js
      * copyright (c) 2015 Susisu
      */
@@ -3998,7 +4542,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils          = __webpack_require__(21),
+    var utils          = __webpack_require__(10),
         assertType     = utils.assertType,
         createObject   = utils.createObject,
         readProperty   = utils.readProperty,
@@ -4303,7 +4847,7 @@ var milktea =
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -4337,14 +4881,14 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
     var module_general = __webpack_require__(9),
-        module_object  = __webpack_require__(10);
+        module_object  = __webpack_require__(11);
 
     /**
      * @static
@@ -4413,7 +4957,7 @@ var milktea =
 
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -4474,13 +5018,13 @@ var milktea =
         __true__  = core.__true__,
         __false__ = core.__false__;
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     /**
      * @static
@@ -5043,7 +5587,7 @@ var milktea =
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -5099,13 +5643,13 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     /**
      * @static
@@ -5675,7 +6219,7 @@ var milktea =
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -5709,13 +6253,13 @@ var milktea =
         __true__  = core.__true__,
         __false__ = core.__false__;
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     /**
      * @static
@@ -5827,7 +6371,7 @@ var milktea =
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -5864,13 +6408,13 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     /**
      * @static
@@ -6057,7 +6601,7 @@ var milktea =
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -6094,7 +6638,7 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils             = __webpack_require__(21),
+    var utils             = __webpack_require__(10),
         assertType        = utils.assertType,
         createObject      = utils.createObject,
         readProperty      = utils.readProperty,
@@ -6102,7 +6646,7 @@ var milktea =
         writeProperty     = utils.writeProperty,
         referenceToString = utils.referenceToString;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     /**
      * @static
@@ -6226,7 +6770,7 @@ var milktea =
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -6319,7 +6863,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -6328,10 +6872,10 @@ var milktea =
         arrayToString = utils.arrayToString;
 
     var module_general  = __webpack_require__(9),
-        module_object   = __webpack_require__(10),
-        module_number   = __webpack_require__(12),
-        module_bool     = __webpack_require__(14),
-        module_function = __webpack_require__(15);
+        module_object   = __webpack_require__(11),
+        module_number   = __webpack_require__(13),
+        module_bool     = __webpack_require__(15),
+        module_function = __webpack_require__(16);
 
     /**
      * @static
@@ -7666,7 +8210,7 @@ var milktea =
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -7701,21 +8245,21 @@ var milktea =
         __true__     = core.__true__,
         __false__    = core.__false__;
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         readProperty  = utils.readProperty,
         callMethod    = utils.callMethod,
         writeProperty = utils.writeProperty,
         checkProperty = utils.checkProperty;
 
-    var module_object    = __webpack_require__(10),
-        module_unit      = __webpack_require__(11),
-        module_number    = __webpack_require__(12),
-        module_string    = __webpack_require__(13),
-        module_bool      = __webpack_require__(14),
-        module_function  = __webpack_require__(15),
-        module_reference = __webpack_require__(16),
-        module_array     = __webpack_require__(17);
+    var module_object    = __webpack_require__(11),
+        module_unit      = __webpack_require__(12),
+        module_number    = __webpack_require__(13),
+        module_string    = __webpack_require__(14),
+        module_bool      = __webpack_require__(15),
+        module_function  = __webpack_require__(16),
+        module_reference = __webpack_require__(17),
+        module_array     = __webpack_require__(18);
 
 
     function toObject(value) {
@@ -7838,7 +8382,7 @@ var milktea =
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -7869,13 +8413,13 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     var INTERNAL_KEY = "__date__";
 
@@ -8564,7 +9108,7 @@ var milktea =
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -8601,7 +9145,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -8609,7 +9153,7 @@ var milktea =
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object = __webpack_require__(10);
+    var module_object = __webpack_require__(11);
 
     var INTERNAL_KEY = "__regexp__";
 
@@ -8925,321 +9469,263 @@ var milktea =
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
-     * milktea : lib/utils.js
+     * milktea : prelude.js
      * copyright (c) 2015 Susisu
      */
 
-    /**
-     * @module lib/utils
+    /*
+     * @module prelude
      */
 
     "use strict";
 
     function end_module() {
-        module.exports = Object.freeze({
-            "assertType"       : assertType,
-            "assertTypes"      : assertTypes,
-            "createObject"     : createObject,
-            "readProperty"     : readProperty,
-            "callMethod"       : callMethod,
-            "writeProperty"    : writeProperty,
-            "checkProperty"    : checkProperty,
-            "deleteProperty"   : deleteProperty,
-            "referenceToString": referenceToString,
-            "arrayToString"    : arrayToString,
-            "readInternalProperty" : readInternalProperty,
-            "writeInternalProperty": writeInternalProperty
-        });
+        module.exports = Object.freeze(prelude);
     }
 
-    var core         = __webpack_require__(1),
-        Value        = core.Value,
-        DataType     = core.DataType,
-        calcTailCall = core.calcTailCall;
+    var module_general   = __webpack_require__(9),
+        module_object    = __webpack_require__(11),
+        module_unit      = __webpack_require__(12),
+        module_number    = __webpack_require__(13),
+        module_string    = __webpack_require__(14),
+        module_bool      = __webpack_require__(15),
+        module_function  = __webpack_require__(16),
+        module_reference = __webpack_require__(17),
+        module_array     = __webpack_require__(18),
+        module_accessor  = __webpack_require__(19),
+        module_date      = __webpack_require__(20),
+        module_regexp    = __webpack_require__(21),
+        module_maybe     = __webpack_require__(23),
+        module_json      = __webpack_require__(24);
 
-    var errors = __webpack_require__(2);
+    var prelude = Object.create(null);
 
-    /**
-     * @static
-     * @param {module:core.Value} value The value to be checked its type.
-     * @param {string} type The type that should match that of the value.
-     * @throws {module:errors.RuntimeError} The type is mismatched.
-     * @desc Asserts that the value has the specified type.
-     */
-    function assertType(value, type) {
-        if (value.type !== type) {
-            throw errors.typeError(undefined, type, value.type);
-        }
-    }
+    prelude["__negate__"]          = module_number.__negate__;
+    prelude["__createObject__"]    = module_object.__createObject__;
+    prelude["__Object__proto__"]   = module_object.__Object__proto__;
+    prelude["__readProperty__"]    = module_accessor.__readProperty__;
+    prelude["__callMethod__"]      = module_accessor.__callMethod__;
+    prelude["__writeProperty__"]   = module_accessor.__writeProperty__;
+    prelude["__checkProperty__"]   = module_accessor.__checkProperty__;
+    prelude["__readPropertyOf__"]  = module_accessor.__readPropertyOf__;
+    prelude["__callMethodOf__"]    = module_accessor.__callMethodOf__;
+    prelude["__writePropertyOf__"] = module_accessor.__writePropertyOf__;
+    prelude["__checkPropertyOf__"] = module_accessor.__checkPropertyOf__;
 
-    /**
-     * @static
-     * @param {module:core.Value} value The value to be checked its type.
-     * @param {Array.<string>} types An array of the types that one of those should match that of the value.
-     * @throws {module:errors.RuntimeError} The type is mismatched.
-     * @desc Asserts that the value has one of the specified types.
-     */
-    function assertTypes(value, types) {
-        var match = false;
-        for (var i = 0; i < types.length; i++) {
-            if (value.type === types[i]) {
-                match = true;
-                break;
-            }
-        }
-        if (!match) {
-            var typesStr = types.slice(0, -1).join(", ") + " or " + types[types.length - 1];
-            throw errors.typeError(undefined, typesStr, value.type);
-        }
-    }
+    prelude["id"]      = module_general.__id__;
+    prelude["const"]   = module_general.__const__;
+    prelude["trace"]   = module_general.__trace__;
+    prelude["error"]   = module_general.__error__;
+    prelude["typeOf"]  = module_general.__typeOf__;
+    prelude["max"]     = module_general.__max__;
+    prelude["min"]     = module_general.__min__;
+    prelude["=="]      = module_general.__equalTo__
+    prelude["/="]      = module_general.__notEqualTo__
+    prelude["<"]       = module_general.__lessThan__
+    prelude["<="]      = module_general.__lessThanOrEqualTo__
+    prelude[">"]       = module_general.__greaterThan__
+    prelude[">="]      = module_general.__greaterThanOrEqualTo__
+    prelude["compare"] = module_general.__compare__;
 
-    /**
-     * @static
-     * @param {module:core.Value} parent The object value to be the parent of the new object.
-     * @return {module:core.Value} A new object value.
-     * @desc Creates a new object value with the specified parent.
-     */
-    function createObject(parent) {
-        return new Value(
-            DataType.OBJECT,
-            Object.create(parent.data)
-        );
-    }
+    prelude["createObject"]      = module_object.__createObject__;
+    prelude["Object"]            = module_object.__Object__;
+    prelude["Class"]             = module_object.__Class__;
+    prelude["isObject"]          = module_object.__isObject__;
+    prelude["instanceOf"]        = module_object.__instanceOf__;
+    prelude["delete"]            = module_object.__delete__;
+    prelude["assign"]            = module_object.__assign__;
+    prelude["orphan"]            = module_object.__orphan__;
+    prelude["keys"]              = module_object.__keys__;
+    prelude["preventExtensions"] = module_object.__preventExtensions__;
+    prelude["seal"]              = module_object.__seal__;
+    prelude["freeze"]            = module_object.__freeze__;
+    prelude["isExtensible"]      = module_object.__isExtensible__;
+    prelude["isSealed"]          = module_object.__isSealed__;
+    prelude["isFrozen"]          = module_object.__isFrozen__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} propName The name of the property
-     * @return {module:core.Value} The property of the object.
-     * @throws {module:errors.RuntimeError} The object is null or the property is not found.
-     * @desc Reads a property of the object.
-     */
-    function readProperty(obj, propName) {
-        if (obj.data === null) {
-            throw errors.readNullObjectError(undefined);
-        }
-        var prop = obj.data[propName];
-        if (prop === undefined) {
-            throw errors.propertyNotFoundError(undefined, propName);
-        }
-        else {
-            return prop;
-        }
-    }
+    prelude["Unit"]   = module_unit.__Unit__;
+    prelude["isUnit"] = module_unit.__isUnit__;
+    prelude["void"]   = module_unit.__void__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} methodName The name of the property.
-     * @return {module:core.Value} The result of calling the method.
-     * @throws {module:errors.RuntimeError} The object is null or the property is not found.
-     * @desc Calls a method of the object.
-     */
-    function callMethod(obj, methodName) {
-        if (obj.data === null) {
-            throw errors.readNullObjectError(undefined);
-        }
-        var prop = obj.data[methodName];
-        if (prop === undefined) {
-            throw errors.propertyNotFoundError(undefined, methodName);
-        }
-        else {
-            assertType(prop, DataType.FUNCTION);
-            return prop.data(obj);
-        }
-    }
+    prelude["Number"]     = module_number.__Number__;
+    prelude["isNumber"]   = module_number.__isNumber__;
+    prelude["isNaN"]      = module_number.__isNaN__;
+    prelude["isFinite"]   = module_number.__isFinite__;
+    prelude["isInteger"]  = module_number.__isInteger__;
+    prelude["toInteger"]  = module_number.__toInteger__;
+    prelude["parseInt"]   = module_number.__parseInt__;
+    prelude["parseFloat"] = module_number.__parseFloat__;
+    prelude["negate"]     = module_number.__negate__;
+    prelude["add"]        = module_number.__abs__;
+    prelude["signum"]     = module_number.__signum__;
+    prelude["+"]          = module_number.__add__;
+    prelude["-"]          = module_number.__sub__;
+    prelude["*"]          = module_number.__mul__;
+    prelude["/"]          = module_number.__div__;
+    prelude["mod"]        = module_number.__mod__;
+    prelude["**"]         = module_number.__pow__;
+    prelude["round"]      = module_number.__round__;
+    prelude["ceiling"]    = module_number.__ceiling__;
+    prelude["floor"]      = module_number.__floor__;
+    prelude["sqrt"]       = module_number.__sqrt__;
+    prelude["exp"]        = module_number.__exp__;
+    prelude["log"]        = module_number.__log__;
+    prelude["logBase"]    = module_number.__logBase__;
+    prelude["sin"]        = module_number.__sin__;
+    prelude["cos"]        = module_number.__cos__;
+    prelude["tan"]        = module_number.__tan__;
+    prelude["asin"]       = module_number.__asin__;
+    prelude["acos"]       = module_number.__acos__;
+    prelude["atan"]       = module_number.__atan__;
+    prelude["atan2"]      = module_number.__atan2__;
+    prelude["random"]     = module_number.__random__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object
-     * @param {string} propName The name of the property
-     * @param {module:core.Value} value The value to be written.
-     * @throws {module:errors.RuntimeError} The object is null or not writable.
-     */
-    function writeProperty(obj, propName, value) {
-        if (obj.data === null) {
-            throw errors.writeNullObjectError(undefined);
-        }
-        var desc = Object.getOwnPropertyDescriptor(obj.data, propName);
-        if (desc === undefined) {
-            if (!Object.isExtensible(obj.data)) {
-                throw errors.cannotWriteError(undefined, propName);
-            }
-            Object.defineProperty(obj.data, propName, {
-                "writable"    : true,
-                "configurable": true,
-                "enumerable"  : true,
-                "value": value
-            });
-        }
-        else {
-            if (!desc["writable"]) {
-                throw errors.cannotWriteError(undefined, propName);
-            }
-            obj.data[propName] = value;
-        }
-    }
+    prelude["String"]          = module_string.__String__;
+    prelude["isString"]        = module_string.__isString__;
+    prelude["charAt"]          = module_string.__charAt__;
+    prelude["charCodeAt"]      = module_string.__charCodeAt__;
+    prelude["charCode"]        = module_string.__charCode__;
+    prelude["fromCharCode"]    = module_string.__fromCharCode__;
+    prelude["strlen"]          = module_string.__length__;
+    prelude["strempty"]        = module_string.__empty__;
+    prelude["toUpperCase"]     = module_string.__toUpperCase__;
+    prelude["toLowerCase"]     = module_string.__toLowerCase__;
+    prelude["strrev"]          = module_string.__reverse__;
+    prelude["strcat"]          = module_string.__concat__;
+    prelude["++"]              = module_string.__concat__;
+    prelude["split"]           = module_string.__split__;
+    prelude["lines"]           = module_string.__lines__;
+    prelude["words"]           = module_string.__words__;
+    prelude["replace"]         = module_string.__replace__;
+    prelude["replaceWith"]     = module_string.__replaceWith__;
+    prelude["trim"]            = module_string.__trim__;
+    prelude["strslice"]        = module_string.__slice__;
+    prelude["indexOfFrom"]     = module_string.__indexOfFrom__;
+    prelude["indexOf"]         = module_string.__indexOf__;
+    prelude["lastIndexOfFrom"] = module_string.__lastIndexOfFrom__;
+    prelude["lastIndexOf"]     = module_string.__lastIndexOf__;
+    prelude["strcycle"]        = module_string.__cycle__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} propName The name of the property.
-     * @return {boolean} A boolean value that describes Whether the object has the property.
-     */
-    function checkProperty(obj, propName) {
-        if (obj.data === null) {
-            return false;
-        }
-        var prop = obj.data[propName];
-        if (prop === undefined) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
+    prelude["Bool"]   = module_bool.__Bool__;
+    prelude["isBool"] = module_bool.__isBool__;
+    prelude["not"]    = module_bool.__not__;
+    prelude["&&"]     = module_bool.__and__;
+    prelude["||"]     = module_bool.__or__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} propName The name of the property.
-     */
-    function deleteProperty(obj, propName) {
-        try {
-            delete obj.data[propName];
-        }
-        catch (err) {
-            throw errors.cannotDeleteError(undefined, propName);
-        }
-    }
+    prelude["Function"]   = module_function.__Function__;
+    prelude["isFunction"] = module_function.__isFunction__;
+    prelude["@"]          = module_function.__compose__;
+    prelude["flip"]       = module_function.__flip__;
+    prelude["$"]          = module_function.__apply__;
+    prelude["&"]          = module_function.__reverseApply__;
+    prelude["on"]         = module_function.__on__;
 
-    /**
-     * @static
-     * @param {module:core.Value} ref The reference value.
-     * @param {Array.<module:core.Value>} blackList The list of values to avoid circular reference.
-     * @return {module:core.Value} The string value that represents the reference.
-     * @throws {module:errors.RuntimeError} Some runtime error occurs.
-     */
-    function referenceToString(ref, blackList) {
-        if (blackList.indexOf(ref) >= 0) {
-            return new Value(
-                DataType.STRING,
-                "<circular>"
-            );
-        }
-        var str;
-        switch (ref.data.type) {
-            case DataType.OBJECT:
-                str = calcTailCall(callMethod(ref.data, "toString"));
-                break;
-            case DataType.REFERENCE:
-                str = referenceToString(ref.data, blackList.concat(ref));
-                break;
-            case DataType.ARRAY:
-                str = arrayToString(ref.data, blackList.concat(ref));
-                break;
-            default:
-                str = new Value(DataType.STRING, ref.data.toString());
-        }
-        assertType(str, DataType.STRING);
-        return new Value(
-            DataType.STRING,
-            "<ref: " + str.data + ">"
-        );
-    }
+    prelude["Reference"]   = module_reference.__Reference__;
+    prelude["isReference"] = module_reference.__isReference__;
+    prelude["ref"]         = module_reference.__ref__;
+    prelude["readRef"]     = module_reference.__readRef__;
+    prelude["writeRef"]    = module_reference.__writeRef__;
+    prelude[":="]          = module_reference.__writeRef__;
+    prelude["modifyRef"]   = module_reference.__modifyRef__;
 
-    /**
-     * @static
-     * @param {module:core.Value} arr The array value.
-     * @param {Array.<module:core.Value>} blackList The list of values to avoid circular reference.
-     * @return {module:core.Value} The string value that represents the array.
-     * @throws {module:errors.RuntimeError} Some runtime error occurs.
-     */
-    function arrayToString(arr, blackList) {
-        var str =
-            arr.data.map(function (elem) {
-                if (blackList.indexOf(elem) >= 0) {
-                    return "<circular>";
-                }
-                var elemStr;
-                switch (elem.type) {
-                    case DataType.OBJECT:
-                        elemStr = calcTailCall(callMethod(elem, "toString"));
-                        break;
-                    case DataType.REFERENCE:
-                        elemStr = referenceToString(elem, blackList.concat(arr));
-                        break;
-                    case DataType.ARRAY:
-                        elemStr = arrayToString(elem, blackList.concat(arr));
-                        break;
-                    default:
-                        elemStr = new Value(DataType.STRING, elem.toString());
-                }
-                assertType(elemStr, DataType.STRING);
-                return elemStr.data;
-            })
-            .join(",");
-        return new Value(
-            DataType.STRING,
-            "[" + str + "]"
-        );
-    }
+    prelude["Array"]             = module_array.__Array__;
+    prelude["isArray"]           = module_array.__isArray__;
+    prelude["newArray"]          = module_array.__newArray__;
+    prelude["readArray"]         = module_array.__readArray__;
+    prelude["!!"]                = module_array.__readArray__;
+    prelude["writeArray"]        = module_array.__writeArray__;
+    prelude["pop"]               = module_array.__pop__;
+    prelude["push"]              = module_array.__push__;
+    prelude["shift"]             = module_array.__shift__;
+    prelude["unshift"]           = module_array.__unshift__;
+    prelude["insertAt"]          = module_array.__insertAt__;
+    prelude["removeAt"]          = module_array.__removeAt__;
+    prelude["head"]              = module_array.__head__;
+    prelude["last"]              = module_array.__last__;
+    prelude["tail"]              = module_array.__tail__;
+    prelude["init"]              = module_array.__init__;
+    prelude["fst"]               = module_array.__fst__;
+    prelude["snd"]               = module_array.__snd__;
+    prelude["length"]            = module_array.__length__;
+    prelude["empty"]             = module_array.__empty__;
+    prelude["reverse"]           = module_array.__reverse__;
+    prelude["concat"]            = module_array.__concat__;
+    prelude["join"]              = module_array.__join__;
+    prelude["map"]               = module_array.__map__;
+    prelude["map_"]              = module_array.__map$__;
+    prelude["for"]               = module_array.__for__;
+    prelude["for_"]              = module_array.__for$__;
+    prelude["foldl"]             = module_array.__foldl__;
+    prelude["foldl1"]            = module_array.__foldl1__;
+    prelude["foldr"]             = module_array.__foldr__;
+    prelude["foldr1"]            = module_array.__foldr1__;
+    prelude["all"]               = module_array.__all__;
+    prelude["any"]               = module_array.__any__;
+    prelude["sum"]               = module_array.__sum__;
+    prelude["product"]           = module_array.__product__;
+    prelude["maximum"]           = module_array.__maximum__;
+    prelude["minimum"]           = module_array.__minimum__;
+    prelude["take"]              = module_array.__take__;
+    prelude["drop"]              = module_array.__drop__;
+    prelude["takeWhile"]         = module_array.__takeWhile__;
+    prelude["dropWhile"]         = module_array.__dropWhile__;
+    prelude["slice"]             = module_array.__slice__;
+    prelude["sortBy"]            = module_array.__sortBy__;
+    prelude["sort"]              = module_array.__sort__;
+    prelude["sortOn"]            = module_array.__sortOn__;
+    prelude["findIndexFrom"]     = module_array.__findIndexFrom__;
+    prelude["findIndex"]         = module_array.__findIndex__;
+    prelude["findLastIndexFrom"] = module_array.__findLastIndexFrom__;
+    prelude["findLastIndex"]     = module_array.__findLastIndex__;
+    prelude["elemIndexFrom"]     = module_array.__elemIndexFrom__;
+    prelude["elemIndex"]         = module_array.__elemIndex__;
+    prelude["elemLastIndexFrom"] = module_array.__elemLastIndexFrom__;
+    prelude["elemLastIndex"]     = module_array.__elemLastIndex__;
+    prelude["elem"]              = module_array.__elem__;
+    prelude["notElem"]           = module_array.__notElem__;
+    prelude["zip"]               = module_array.__zip__;
+    prelude["zipWith"]           = module_array.__zipWith__;
+    prelude["range"]             = module_array.__range__;
+    prelude["range'"]            = module_array.__range$__;
+    prelude[".."]                = module_array.__range$__;
+    prelude["replicate"]         = module_array.__replicate__;
+    prelude["cycle"]             = module_array.__cycle__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} key The key of the internal namespace.
-     * @param {string} propName The name of the internal property.
-     * @return {module:core.Value} The internal property of the object.
-     * @throws {module:errors.RuntimeError} The object has no internal namespace or does not have the proeprty.
-     */
-    function readInternalProperty(obj, key, propName) {
-        if (!obj.hasOwnProperty("internals")) {
-            throw errors.noInternalNamespaceError(undefined);
-        }
-        if (!obj.internals.hasOwnProperty(key)) {
-            throw errors.readInternalPropertyError(undefined, key, propName);
-        }
-        if (!obj.internals[key].hasOwnProperty(propName)) {
-            throw errors.readInternalPropertyError(undefined, key, propName);
-        }
-        else {
-            return obj.internals[key][propName];
-        }
-    }
+    prelude["toObject"]        = module_accessor.__toObject__;
+    prelude["readProperty"]    = module_accessor.__readProperty__;
+    prelude["callMethod"]      = module_accessor.__callMethod__;
+    prelude["writeProperty"]   = module_accessor.__writeProperty__;
+    prelude["checkProperty"]   = module_accessor.__checkProperty__;
+    prelude["readPropertyOf"]  = module_accessor.__readPropertyOf__;
+    prelude["callMethodOf"]    = module_accessor.__callMethodOf__;
+    prelude["writePropertyOf"] = module_accessor.__writePropertyOf__;
+    prelude["checkPropertyOf"] = module_accessor.__checkPropertyOf__;
 
-    /**
-     * @static
-     * @param {module:core.Value} obj The target object.
-     * @param {string} key The key of the internal namespace.
-     * @param {string} propName The name of the internal property.
-     * @param {module:core.Value} value The value to be written.
-     * @throws {module:errors.RuntimeError} The object has no internal namespace.
-     */
-    function writeInternalProperty(obj, key, propName, value) {
-        if (!obj.hasOwnProperty("internals")) {
-            throw errors.noInternalNamespaceError(undefined);
-        }
-        if (!obj.internals.hasOwnProperty(key)) {
-            obj.internals[key] = {};
-        }
-        Object.defineProperty(obj.internals[key], propName, {
-            "writable"    : true,
-            "configurable": true,
-            "enumerable"  : true,
-            "value": value
-        });
-    }
+    prelude["Date"] = module_date.__Date__;
+
+    prelude["RegExp"]        = module_regexp.__RegExp__;
+    prelude["splitRE"]       = module_regexp.__splitRE__;
+    prelude["replaceRE"]     = module_regexp.__replaceRE__;
+    prelude["replaceREWith"] = module_regexp.__replaceREWith__;
+
+    prelude["Nothing"] = module_maybe.__Nothing__;
+    prelude["Just"]    = module_maybe.__Just__;
+    prelude["nothing"] = module_maybe.__nothing__;
+    prelude["just"]    = module_maybe.__just__;
+    prelude["maybe"]   = module_maybe.__maybe__;
+
+    prelude["fromJSON"] = module_json.__fromJSON__;
+    prelude["toJSON"]   = module_json.__toJSON__;
 
     end_module();
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -9280,7 +9766,7 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         readProperty  = utils.readProperty,
@@ -9288,8 +9774,8 @@ var milktea =
         readInternalProperty  = utils.readInternalProperty,
         writeInternalProperty = utils.writeInternalProperty;
 
-    var module_object   = __webpack_require__(10),
-        module_accessor = __webpack_require__(18);
+    var module_object   = __webpack_require__(11),
+        module_accessor = __webpack_require__(19);
 
     var INTERNAL_KEY = "__maybe__";
 
@@ -9577,7 +10063,7 @@ var milktea =
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
     /*
@@ -9607,13 +10093,13 @@ var milktea =
 
     var errors = __webpack_require__(2);
 
-    var utils         = __webpack_require__(21),
+    var utils         = __webpack_require__(10),
         assertType    = utils.assertType,
         createObject  = utils.createObject,
         writeProperty = utils.writeProperty;
 
-    var module_object = __webpack_require__(10),
-        module_maybe  = __webpack_require__(22);
+    var module_object = __webpack_require__(11),
+        module_maybe  = __webpack_require__(23);
 
     function fromJSONValue(value) {
         switch (typeof value) {
@@ -9719,492 +10205,6 @@ var milktea =
                 }
             }
         );
-
-    end_module();
-
-
-/***/ },
-/* 24 */
-/***/ function(module, exports, __webpack_require__) {
-
-    /*
-     * milktea : parser/tokens.js
-     * copyright (c) 2015 Susisu
-     */
-
-    /**
-     * @module parser/tokens
-     */
-
-    "use strict";
-
-    function end_module() {
-        module.exports = Object.freeze({
-            "Token"           : Token,
-            "NaturalLiteral"  : NaturalLiteral,
-            "FloatLiteral"    : FloatLiteral,
-            "StringLiteral"   : StringLiteral,
-            "BoolLiteral"     : BoolLiteral,
-            "NullLiteral"     : NullLiteral,
-            "Identifier"      : Identifier,
-            "Operator"        : Operator,
-            "InfixIdentifier" : InfixIdentifier,
-            "NoBindingPattern": NoBindingPattern,
-            "ReservedWord"    : ReservedWord,
-            "ReservedOperator": ReservedOperator,
-            "Symbol"          : Symbol
-        });
-    }
-
-    var lq = __webpack_require__(6);
-
-    /**
-     * @static
-     * @class Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     */
-    function Token(pos) {
-        this.pos = pos;
-    }
-
-    Token.prototype = Object.create(Object.prototype, /** @lends module:parser/tokens.Token.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": Token
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "unknown token";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class NaturalLiteral
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {number} value
-     */
-    function NaturalLiteral(pos, value) {
-        Token.call(this, pos);
-        this.value = value;
-    }
-
-    NaturalLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NaturalLiteral.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": NaturalLiteral
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "number " + this.value.toString();
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class FloatLiteral
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {number} value
-     */
-    function FloatLiteral(pos, value) {
-        Token.call(this, pos);
-        this.value = value;
-    }
-
-    FloatLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.FloatLiteral.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": FloatLiteral
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "number " + this.value.toString();
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class StringLiteral
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} value
-     */
-    function StringLiteral(pos, value) {
-        Token.call(this, pos);
-        this.value = value;
-    }
-
-    StringLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.StringLiteral.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": StringLiteral
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "string " + lq.show(this.value);
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class BoolLiteral
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {bool} value
-     */
-    function BoolLiteral(pos, value) {
-        Token.call(this, pos);
-        this.value = value;
-    }
-
-    BoolLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.BoolLiteral.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": BoolLiteral
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "bool " + (this.value ? "true" : "false");
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class NullLiteral
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     */
-    function NullLiteral(pos) {
-        Token.call(this, pos);
-    }
-
-    NullLiteral.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NullLiteral.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": NullLiteral
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "null";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class Identifier
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function Identifier(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    Identifier.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Identifier.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": Identifier
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "identifier '" + this.name + "'";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class Operator
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function Operator(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    Operator.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Operator.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": Operator
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "operator " + this.name;
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class InfixIdentifier
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function InfixIdentifier(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    InfixIdentifier.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.InfixIdentifier.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": InfixIdentifier
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "operator `" + this.name + "`";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class NoBindingPattern
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     */
-    function NoBindingPattern(pos) {
-        Token.call(this, pos);
-    }
-
-    NoBindingPattern.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.NoBindingPattern.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": NoBindingPattern
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "_";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class ReservedWord
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function ReservedWord(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    ReservedWord.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.ReservedWord.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": ReservedWord
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return "reserved word '" + this.name + "'";
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class ReservedOperator
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function ReservedOperator(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    ReservedOperator.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.ReservedOperator.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": ReservedOperator
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return this.name;
-            }
-        }
-    });
-
-    /**
-     * @static
-     * @class Symbol
-     * @extends module:parser/tokens.Token
-     * @param {loquat.SourcePos} pos The position in the source.
-     * @param {string} name
-     */
-    function Symbol(pos, name) {
-        Token.call(this, pos);
-        this.name = name;
-    }
-
-    Symbol.prototype = Object.create(Token.prototype, /** @lends module:parser/tokens.Symbol.prototype */ {
-        /**
-         * @member
-         */
-        "constructor": {
-            "writable"    : true,
-            "configurable": true,
-            "value": Symbol
-        },
-        /**
-         * @member
-         * @function
-         * @return {string} The string representation of the token.
-         */
-        "toString": {
-            "writable"    : true,
-            "configurable": true,
-            "value": function () {
-                return this.name;
-            }
-        }
-    });
 
     end_module();
 
