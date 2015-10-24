@@ -1,5 +1,5 @@
 var gulp    = require("gulp"),
-    webpack = require("gulp-webpack");
+    webpack = require("webpack-stream");
 
 var packageInfo = require("./package.json");
 var banner      = "milktea " + packageInfo.version + "\n\
