@@ -1,5 +1,5 @@
 /*!
- * milktea 0.1.2
+ * milktea 0.1.3
  * copyright (c) 2015 Susisu | MIT License
  * https://github.com/susisu/milktea
  */
@@ -9484,7 +9484,7 @@ var milktea =
     "use strict";
 
     function end_module() {
-        module.exports = Object.freeze(prelude);
+        module.exports = prelude;
     }
 
     var module_general   = __webpack_require__(9),
